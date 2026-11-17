@@ -1,0 +1,87 @@
+"use client";
+
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import Link from "next/link";
+import { gsap } from "@/lib/gsap";
+
+export interface ProjectRow {
+  slug: string;
+  name: string;
+  platformLabel: string;
+  pitch: string;
+  stack: string;
+}
+
+interface ProjectIndexProps {
+  rows: ProjectRow[];
+  /** Device mock-ups, server-rendered, in the same order as `rows`. */
+  previews: ReactNode[];
+}
+
+/**
+ * The work list: each app's name set huge. On hover, that app's screen floats beside the
+ * cursor; on touch screens the screen sits inline under the name.
+ */
+export function ProjectIndex({ rows, previews }: ProjectIndexProps) {
+  const root = useRef<HTMLDivElement>(null);
+  const floater = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState<number | null>(null);
+
+  useEffect(() => {
+    const el = floater.current;
+    gsap.set(el, { xPercent: -50, yPercent: -55, scale: 0.6, autoAlpha: 0, rotate: -6 });
+    return () => {
+      gsap.killTweensOf(el);
+    };
+  }, []);
+
+  const follow = (event: React.PointerEvent): void => {
+    gsap.to(floater.current, { x: event.clientX, y: event.clientY, duration: 0.6, ease: "power3.out", overwrite: "auto" });
+  };
+
+  const show = (index: number | null): void => {
+    setActive(index);
+    gsap.to(floater.current, {
+      autoAlpha: index === null ? 0 : 1,
+      scale: index === null ? 0.6 : 1,
+      rotate: index === null ? -6 : index % 2 ? 4 : -4,
+      duration: 0.5,
+      ease: "expo.out",
+    });
+  };
+
+  return (
+    <div ref={root} onPointerMove={follow} onPointerLeave={() => show(null)}>
+      <ul className="border-t border-line">
+        {rows.map((row, index) => (
+          <li key={row.slug} className="border-b border-line">
+            <Link
+              href={`/work/${row.slug}`}
+              data-cursor="Open the project"
+              onPointerEnter={() => show(index)}
+              onFocus={() => setActive(index)}
+              className="group grid gap-x-8 gap-y-3 py-9 md:grid-cols-12 md:items-center md:py-12"
+            >
+              <span className="text-sm text-lamp md:col-span-2">{row.platformLabel}</span>
+              <span className="type-display text-[15vw] leading-[0.85] text-paper transition-[font-variation-settings,color,translate] duration-500 [--wdth:62] group-hover:translate-x-3 group-hover:text-lamp group-hover:[--wdth:82] md:col-span-6 md:text-[6.6vw]">
+                {row.name}
+              </span>
+              <span className="md:col-span-4">
+                <span className="block text-lg leading-snug text-paper">{row.pitch}</span>
+                <span className="mt-2 block text-sm text-haze">{row.stack}</span>
+              </span>
+              <span className="mt-4 block md:hidden">{previews[index]}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+      <div ref={floater} aria-hidden className="pointer-events-none fixed left-0 top-0 z-[70] hidden w-[340px] md:block">
+        {previews.map((preview, index) => (
+          <div key={rows[index].slug} className={active === index ? "block" : "hidden"}>
+            {preview}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

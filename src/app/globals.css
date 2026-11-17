@@ -1,0 +1,157 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens — "a room at night, lit by one lamp".
+ * night: the page itself · ink: deepest shadow · dusk: raised surfaces
+ * paper: text and sticker outlines · haze: secondary text · lamp: the only accent
+ */
+@theme {
+  --color-night: #0e1124;
+  --color-ink: #080a16;
+  --color-dusk: #171b33;
+  --color-paper: #f2eadb;
+  --color-haze: #9b98b3;
+  --color-lamp: #ff8a1f;
+  --color-line: rgb(242 234 219 / 0.12);
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+@theme inline {
+  --font-display: var(--font-anybody), "Arial Narrow", sans-serif;
+  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+  --font-code: var(--font-jetbrains), ui-monospace, monospace;
+}
+
+@layer base {
+  html {
+    background-color: var(--color-night);
+    color: var(--color-paper);
+    color-scheme: dark;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    overflow-x: clip;
+  }
+
+  ::selection {
+    background-color: var(--color-lamp);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-lamp);
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
+}
+
+/* Lenis smooth scroll */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* Custom cursor hides the native one only on fine pointers, never on text fields */
+@media (pointer: fine) {
+  html.has-cursor,
+  html.has-cursor a,
+  html.has-cursor button,
+  html.has-cursor canvas {
+    cursor: none;
+  }
+  html.has-cursor input,
+  html.has-cursor textarea {
+    cursor: text;
+  }
+}
+
+@layer components {
+  /* Display type: Anybody's width axis is driven by --wdth so GSAP can animate it */
+  .type-display {
+    font-family: var(--font-display);
+    font-variation-settings: "wdth" var(--wdth, 100);
+    font-weight: var(--wght, 800);
+    line-height: 0.82;
+    letter-spacing: -0.01em;
+  }
+
+  /* Film grain: one static noise tile, jittered in steps */
+  .grain {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    background-size: 220px 220px;
+    opacity: 0.07;
+    animation: grain-jitter 0.9s steps(5) infinite;
+  }
+
+  /* Soft lamp glow and vignette that sit behind and around the room */
+  .night-vignette {
+    background:
+      radial-gradient(ellipse 55% 50% at 52% 55%, rgb(255 138 31 / 0.10), transparent 70%),
+      radial-gradient(ellipse 90% 80% at 50% 50%, transparent 55%, rgb(8 10 22 / 0.85) 100%);
+  }
+}
+
+/* Sprite capture page: nothing but the figure. */
+html[data-capture],
+html[data-capture] body {
+  background: transparent !important;
+}
+html[data-capture] .grain,
+html[data-capture] [data-cursor-root] {
+  display: none;
+}
+
+html.is-loading,
+html.is-loading body {
+  overflow: hidden;
+}
+
+@keyframes pop {
+  0% { opacity: 0; transform: scale(0.6); }
+  18% { opacity: 1; transform: scale(1.08); }
+  30% { transform: scale(1); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-20px); }
+}
+
+@keyframes eq {
+  0%, 100% { height: 3px; }
+  50% { height: 14px; }
+}
+
+@keyframes scroll-cue {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(200%); }
+}
+
+@keyframes grain-jitter {
+  0% { transform: translate3d(0, 0, 0); }
+  20% { transform: translate3d(-4%, 3%, 0); }
+  40% { transform: translate3d(3%, -5%, 0); }
+  60% { transform: translate3d(-2%, -2%, 0); }
+  80% { transform: translate3d(5%, 4%, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grain {
+    animation: none;
+  }
+}

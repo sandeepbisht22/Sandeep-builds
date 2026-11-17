@@ -1,0 +1,20 @@
+/** Colours for the room. Only the lamp colour is saturated; everything else stays muted. */
+export const ROOM_COLORS = {
+  wall: "#262b47",
+  wallCap: "#3d4468",
+  skirting: "#161a2e",
+  slab: "#24180f",
+  walnut: "#3a2a20",
+  walnutDark: "#2a1e18",
+  walnutLight: "#7a5539",
+  black: "#121219",
+  charcoal: "#1d1f2b",
+  paper: "#f2eadb",
+  lamp: "#ff8a1f",
+  lampWarm: "#ffb46b",
+  screenGlow: "#a9c4ff",
+  cork: "#6c4f36",
+  olive: "#41462f",
+  leaf: "#3d6b48",
+  chrome: "#9aa0b4",
+} as const;
