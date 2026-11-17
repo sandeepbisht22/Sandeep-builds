@@ -171,7 +171,7 @@ export function kitTexture(kind: KitKind): CanvasTexture {
   ctx.lineWidth = 18;
   ctx.strokeStyle = trim;
   ctx.stroke();
-  const display = fontFamily("--font-anybody", "sans-serif");
+  const display = fontFamily("--face-display", "sans-serif");
   ctx.fillStyle = ink;
   ctx.textAlign = "center";
   ctx.font = `900 170px ${display}`;
@@ -213,7 +213,7 @@ export function streetGraphicTexture(): CanvasTexture {
   ctx.arc(128, 128, 118, 0, Math.PI * 2);
   ctx.fill();
   ctx.fillStyle = "#14121c";
-  ctx.font = `900 120px ${fontFamily("--font-anybody", "sans-serif")}`;
+  ctx.font = `900 120px ${fontFamily("--face-display", "sans-serif")}`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText("SB", 128, 136);

@@ -5,6 +5,10 @@ import {
   SHEET_GONE_T,
   SHEET_RISE_T,
   TRAVEL,
+  HIT_ZONES,
+  ROOM,
+  WINDOW,
+  type HitZone,
   anchorAt,
   frame,
   heroShift,
@@ -143,5 +147,51 @@ describe("chapter coverage", () => {
     expect(TRAVEL.outfitSwap).toBeLessThan(TRAVEL.arrive);
     expect(TRAVEL.walkStart).toBeGreaterThanOrEqual(SHEET_GONE_T - 0.15);
     expect(TRAVEL.arrive).toBeLessThan(SHEET_RISE_T);
+  });
+});
+
+describe("hit zones", () => {
+  type Box = { min: number[]; max: number[] };
+  const box = (zone: HitZone): Box => ({
+    min: zone.position.map((p, i) => p - zone.size[i] / 2),
+    max: zone.position.map((p, i) => p + zone.size[i] / 2),
+  });
+  const overlaps = (a: Box, b: Box): boolean => [0, 1, 2].every((i) => a.min[i] < b.max[i] && b.min[i] < a.max[i]);
+  const hoverable = chapters.filter((c) => c.id !== "room").map((c) => c.id as Exclude<ChapterId, "room">);
+
+  it("gives every room object at least one core", () => {
+    for (const id of hoverable) expect(HIT_ZONES[id].length).toBeGreaterThan(0);
+  });
+
+  it("keeps every core inside the room", () => {
+    for (const id of hoverable) {
+      for (const zone of HIT_ZONES[id]) {
+        const { min, max } = box(zone);
+        expect(min[0]).toBeGreaterThanOrEqual(-ROOM.half);
+        expect(max[0]).toBeLessThanOrEqual(ROOM.half);
+        expect(min[2]).toBeGreaterThanOrEqual(-ROOM.half);
+        expect(max[2]).toBeLessThanOrEqual(ROOM.half);
+        expect(min[1]).toBeGreaterThanOrEqual(0);
+        expect(max[1]).toBeLessThanOrEqual(ROOM.wallHeight);
+      }
+    }
+  });
+
+  it("never lets two objects' cores overlap", () => {
+    for (const a of hoverable) {
+      for (const b of hoverable) {
+        if (a >= b) continue;
+        for (const za of HIT_ZONES[a]) for (const zb of HIT_ZONES[b]) expect(overlaps(box(za), box(zb))).toBe(false);
+      }
+    }
+  });
+
+  it("keeps the window's core inside the window opening, clear of the kit corner", () => {
+    const [opening] = HIT_ZONES.window;
+    const { min, max } = box(opening);
+    expect(min[2]).toBeGreaterThanOrEqual(WINDOW.z - WINDOW.width / 2);
+    expect(max[2]).toBeLessThanOrEqual(WINDOW.z + WINDOW.width / 2);
+    expect(min[1]).toBeGreaterThanOrEqual(WINDOW.y - WINDOW.height / 2);
+    expect(max[1]).toBeLessThanOrEqual(WINDOW.y + WINDOW.height / 2);
   });
 });

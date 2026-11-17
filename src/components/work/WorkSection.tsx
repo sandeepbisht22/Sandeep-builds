@@ -29,7 +29,7 @@ export function WorkSection() {
 
       <div className="mt-28 grid gap-10 md:mt-36 md:grid-cols-12">
         <div className="md:col-span-4">
-          <h3 className="type-display text-6xl text-paper [--wdth:70] md:text-7xl">Toolkit</h3>
+          <h3 className="type-display text-6xl text-paper [--wdth:86] md:text-7xl">Toolkit</h3>
           <p className="mt-4 max-w-sm text-haze">
             What I reach for, day to day. The ones marked learning are the ones I&apos;m getting good at right now.
           </p>

@@ -28,7 +28,7 @@ function Stop({ stop }: { stop: CareerStop }) {
         <figcaption className="mt-3 text-center text-sm font-semibold italic text-ink/75">{stop.place}</figcaption>
       </figure>
       <div>
-        <p className="type-display text-[16vw] leading-[0.8] text-ink [--wdth:56] md:text-[6.2vw]">{years}</p>
+        <p className="type-display text-[16vw] leading-[0.8] text-ink [--wdth:73] md:text-[6.2vw]">{years}</p>
         <h3 className="mt-5 text-2xl font-bold text-ink">{stop.role}</h3>
         <p className="text-ink/70">{stop.place}</p>
         <p className="mt-4 max-w-sm text-lg leading-relaxed text-ink/80">{stop.note}</p>

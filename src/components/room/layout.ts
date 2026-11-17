@@ -45,6 +45,34 @@ export const SHOTS: Record<ChapterId, ShotSpec> = {
   window: { target: [-3.3, 1.85, -1.0], dir: [1, 0.08, 0.14], fitW: 3.2, fitH: 3.0, fov: 30, diveW: 1.2, diveTarget: [-3.5, 2.45, -1.0] },
 };
 
+/** An invisible box the pointer has to reach before a room object lights up. */
+export interface HitZone {
+  position: Vec3;
+  size: Vec3;
+}
+
+/**
+ * The core of each room object. Only these boxes take the pointer, so sweeping across the
+ * room on the way to the scroll bar doesn't light up every object you pass over.
+ */
+export const HIT_ZONES: Record<Exclude<ChapterId, "room">, readonly HitZone[]> = {
+  // the two monitors and the keyboard, not the chair, tower or lamp
+  desk: [{ position: [0.85, 1.5, -3.0], size: [2.3, 1.05, 0.7] }],
+  // the cork board
+  wall: [{ position: [0.8, 2.86, -3.4], size: [1.9, 0.9, 0.14] }],
+  // the row of framed jerseys
+  kit: [{ position: [-3.38, 2.3, 1.78], size: [0.16, 1.1, 3.0] }],
+  // the record deck and the middle of the cabinet, not the speakers at its ends
+  turntable: [{ position: [-3.2, 0.78, -1.0], size: [0.56, 0.8, 1.5] }],
+  // the bookcase itself, not the bean bag
+  shelf: [{ position: [-2.55, 1.45, -3.2], size: [1.6, 2.4, 0.44] }],
+  // the window opening and the trek backpack
+  window: [
+    { position: [-3.42, WINDOW.y, WINDOW.z], size: [0.14, WINDOW.height - 0.1, WINDOW.width - 0.1] },
+    { position: [2.6, 0.4, 1.75], size: [0.5, 0.8, 0.45] },
+  ],
+};
+
 /** Where mini-me stands for each chapter (floor positions), in front of each object and clear of furniture. */
 export const ANCHORS: Record<ChapterId, Vec3> = {
   room: [0.95, 0, 1.0],

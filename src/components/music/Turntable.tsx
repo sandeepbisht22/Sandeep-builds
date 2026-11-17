@@ -39,7 +39,7 @@ export function Vinyl() {
       >
         <div className="absolute inset-[34%] grid place-items-center rounded-full bg-paper text-ink">
           <div className="text-center">
-            <p className="type-display text-4xl leading-none [--wdth:70]">SB</p>
+            <p className="type-display text-4xl leading-none [--wdth:86]">SB</p>
             <p className="mt-1 text-xs font-semibold">side A</p>
           </div>
         </div>

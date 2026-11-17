@@ -1,27 +1,30 @@
 import type { Metadata, Viewport } from "next";
-import { Anybody, Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
+import { Archivo, Instrument_Sans, Space_Mono } from "next/font/google";
 import { SmoothScroll } from "@/components/providers/SmoothScroll";
 import { Cursor } from "@/components/chrome/Cursor";
 import { Grain } from "@/components/chrome/Grain";
 import { site } from "@/content/site";
 import "./globals.css";
 
-const anybody = Anybody({
+// "Matchday" type: a scoreboard grotesk for display, a clean sans for reading, a retro mono for code.
+// The CSS variables are named by role so canvas textures and globals.css don't care which face it is.
+const display = Archivo({
   subsets: ["latin"],
   axes: ["wdth"],
-  variable: "--font-anybody",
+  variable: "--face-display",
   display: "swap",
 });
 
-const hanken = Hanken_Grotesk({
+const body = Instrument_Sans({
   subsets: ["latin"],
-  variable: "--font-hanken",
+  variable: "--face-body",
   display: "swap",
 });
 
-const jetbrains = JetBrains_Mono({
+const code = Space_Mono({
   subsets: ["latin"],
-  variable: "--font-jetbrains",
+  weight: ["400", "700"],
+  variable: "--face-code",
   display: "swap",
 });
 
@@ -39,7 +42,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${anybody.variable} ${hanken.variable} ${jetbrains.variable}`}>
+    <html lang="en" className={`${display.variable} ${body.variable} ${code.variable}`}>
       <body>
         <SmoothScroll />
         {children}

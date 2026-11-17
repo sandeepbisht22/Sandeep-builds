@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { BrowserBar } from "@/components/chrome/BrowserBar";
+import { CURSOR_HOST, componentName } from "@/lib/cursor";
 import { gsap } from "@/lib/gsap";
 
 export interface ProjectRow {
@@ -19,13 +21,15 @@ interface ProjectIndexProps {
 }
 
 /**
- * The work list: each app's name set huge. On hover, that app's screen floats beside the
- * cursor; on touch screens the screen sits inline under the name.
+ * The work list: each app's name set huge. On hover, that app's screen floats under the
+ * cursor in a little browser window (so the cursor's own browser header stays hidden here);
+ * on touch screens the screen sits inline under the name.
  */
 export function ProjectIndex({ rows, previews }: ProjectIndexProps) {
   const root = useRef<HTMLDivElement>(null);
   const floater = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState<number | null>(null);
+  /** The last row hovered or focused: it stays in the window while the window fades out. */
+  const [shown, setShown] = useState(0);
 
   useEffect(() => {
     const el = floater.current;
@@ -40,7 +44,7 @@ export function ProjectIndex({ rows, previews }: ProjectIndexProps) {
   };
 
   const show = (index: number | null): void => {
-    setActive(index);
+    if (index !== null) setShown(index);
     gsap.to(floater.current, {
       autoAlpha: index === null ? 0 : 1,
       scale: index === null ? 0.6 : 1,
@@ -57,13 +61,15 @@ export function ProjectIndex({ rows, previews }: ProjectIndexProps) {
           <li key={row.slug} className="border-b border-line">
             <Link
               href={`/work/${row.slug}`}
-              data-cursor="Open the project"
+              data-cursor={componentName(row.name)}
+              data-cursor-title={row.name}
+              data-cursor-tip="none"
               onPointerEnter={() => show(index)}
-              onFocus={() => setActive(index)}
+              onFocus={() => setShown(index)}
               className="group grid gap-x-8 gap-y-3 py-9 md:grid-cols-12 md:items-center md:py-12"
             >
               <span className="text-sm text-lamp md:col-span-2">{row.platformLabel}</span>
-              <span className="type-display text-[15vw] leading-[0.85] text-paper transition-[font-variation-settings,color,translate] duration-500 [--wdth:62] group-hover:translate-x-3 group-hover:text-lamp group-hover:[--wdth:82] md:col-span-6 md:text-[6.6vw]">
+              <span className="type-display text-[15vw] leading-[0.85] text-paper transition-[font-variation-settings,color,translate] duration-500 [--wdth:79] group-hover:translate-x-3 group-hover:text-lamp group-hover:[--wdth:97] md:col-span-6 md:text-[6.6vw]">
                 {row.name}
               </span>
               <span className="md:col-span-4">
@@ -76,8 +82,14 @@ export function ProjectIndex({ rows, previews }: ProjectIndexProps) {
         ))}
       </ul>
       <div ref={floater} aria-hidden className="pointer-events-none fixed left-0 top-0 z-[70] hidden w-[340px] md:block">
+        <BrowserBar
+          title={rows[shown].name}
+          address={{ host: CURSOR_HOST, path: `/work/${rows[shown].slug}` }}
+          playKey={shown}
+          className="mb-3"
+        />
         {previews.map((preview, index) => (
-          <div key={rows[index].slug} className={active === index ? "block" : "hidden"}>
+          <div key={rows[index].slug} className={shown === index ? "block" : "hidden"}>
             {preview}
           </div>
         ))}

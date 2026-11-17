@@ -10,8 +10,8 @@ interface StretchProps {
   to?: number;
 }
 
-/** Widens display type (Anybody's width axis) as the element scrolls through the viewport. */
-export function Stretch({ children, className = "", from = 40, to = 100 }: StretchProps) {
+/** Widens display type (Archivo's width axis, 62–125) as the element scrolls through the viewport. */
+export function Stretch({ children, className = "", from = 62, to = 114 }: StretchProps) {
   const ref = useRef<HTMLDivElement>(null);
   useGSAP(
     () => {

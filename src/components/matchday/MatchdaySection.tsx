@@ -24,7 +24,7 @@ function SportCard({ sport, facts, note, sprite, diagram }: SportCardProps) {
   return (
     <article className="relative overflow-hidden rounded-[28px] border border-line bg-[#0b1a14] p-7 md:p-9">
       <div className="flex items-start justify-between gap-6">
-        <h3 className="type-display text-6xl text-paper [--wdth:70] md:text-7xl">{sport}</h3>
+        <h3 className="type-display text-6xl text-paper [--wdth:86] md:text-7xl">{sport}</h3>
         <Sprite name={sprite} className="-mb-24 -mr-4 -mt-4 w-32 md:w-40" />
       </div>
       <div className="mt-8 rounded-2xl border border-white/10 bg-[#0f241b] p-4">{diagram}</div>
@@ -46,7 +46,7 @@ export function MatchdaySection() {
   const { football, cricket } = interests;
   return (
     <ChapterSection id="kit" tone="ink" title="Matchday" lead="Football on weekends, cricket all summer. Same number on both shirts.">
-      <Stretch className="grid grid-cols-3 gap-[2vw]" from={34} to={92}>
+      <Stretch className="grid grid-cols-3 gap-[2vw]" from={62} to={106}>
         {SEVENS.map((seven) => (
           <figure key={seven.caption} className="flex flex-col items-center">
             <span aria-hidden className={`type-display text-[34vw] leading-[0.78] md:text-[22vw] ${seven.colour}`}>

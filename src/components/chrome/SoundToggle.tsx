@@ -56,7 +56,9 @@ export function SoundToggle({ className = "" }: SoundToggleProps) {
       type="button"
       onClick={() => void setSound(!on)}
       aria-pressed={on}
-      data-cursor={on ? "Turn the beat off" : "Turn the beat on"}
+      data-cursor={on ? "Beat off" : "Beat on"}
+      data-cursor-title="Sound"
+      data-cursor-path={on ? "/?beat=off" : "/?beat=on"}
       className={`group flex items-center gap-2.5 rounded-full border border-line bg-ink/55 px-3.5 py-2 text-sm text-paper backdrop-blur-md transition-colors hover:border-lamp ${className}`}
     >
       <span aria-hidden className="flex h-3.5 items-end gap-[2px]">

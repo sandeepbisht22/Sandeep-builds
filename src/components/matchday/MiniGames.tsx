@@ -68,7 +68,7 @@ export function MiniGames() {
     <div className="mt-24">
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div>
-          <h3 className="type-display text-6xl text-paper [--wdth:70] md:text-7xl">Your turn</h3>
+          <h3 className="type-display text-6xl text-paper [--wdth:86] md:text-7xl">Your turn</h3>
           <p className="mt-3 max-w-md text-haze">{COPY[game].how}</p>
         </div>
         <div role="tablist" aria-label="Choose a game" className="flex rounded-full border border-line p-1">
@@ -90,6 +90,8 @@ export function MiniGames() {
       <div
         ref={box}
         data-cursor={status.mode === "play" ? (game === "penalty" ? "Shoot" : "Swing") : undefined}
+        data-cursor-title="Matchday"
+        data-cursor-path={game === "penalty" ? "/matchday?shoot" : "/matchday?swing"}
         className="relative mt-8 aspect-[4/5] overflow-hidden rounded-[28px] border border-line bg-[#07120d] sm:aspect-[16/9]"
       >
         {mounted && <Scene key={`${game}-${round}`} mode={status.mode} round={round} active={visible} onEvent={onEvent} />}
@@ -103,7 +105,7 @@ export function MiniGames() {
         {status.message && status.mode === "play" && !status.summary && (
           <p
             key={`${status.score}-${status.message}`}
-            className={`type-display pointer-events-none absolute inset-x-0 top-[38%] animate-[pop_1.2s_ease-out_forwards] text-center text-[14vw] [--wdth:80] sm:text-[7vw] ${status.good ? "text-lamp" : "text-paper"}`}
+            className={`type-display pointer-events-none absolute inset-x-0 top-[38%] animate-[pop_1.2s_ease-out_forwards] text-center text-[14vw] [--wdth:95] sm:text-[7vw] ${status.good ? "text-lamp" : "text-paper"}`}
           >
             {status.message}
           </p>

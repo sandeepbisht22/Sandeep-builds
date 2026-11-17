@@ -25,7 +25,7 @@ export function MusicStage({ children }: { children: ReactNode }) {
           anticipatePin: 1,
           onUpdate: (self) => {
             gsap.to(scratch ?? [], { rotation: self.progress * 900, duration: 0.5, ease: "power3.out", overwrite: "auto" });
-            gsap.set(track ?? [], { "--wdth": 44 + self.progress * 46 });
+            gsap.set(track ?? [], { "--wdth": 62 + self.progress * 43 });
           },
         });
       };

@@ -30,7 +30,7 @@ export function OutThereSection() {
 
       <div id="contact" className="mt-32 grid items-end gap-12 md:grid-cols-12">
         <div className="md:col-span-8">
-          <h3 className="type-display text-[18vw] leading-[0.8] text-paper [--wdth:62] md:text-[9vw]">Say hello</h3>
+          <h3 className="type-display text-[18vw] leading-[0.8] text-paper [--wdth:79] md:text-[9vw]">Say hello</h3>
           <p className="mt-6 max-w-lg text-lg text-haze">
             Got something to build, or a trail I should walk? I&apos;m a message away.
           </p>
