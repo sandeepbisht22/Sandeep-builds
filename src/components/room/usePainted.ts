@@ -9,10 +9,10 @@ let fontsLoaded = false;
 async function loadFonts(): Promise<void> {
   try {
     await Promise.all([
-      document.fonts.load(`800 40px ${fontFamily("--font-anybody", "sans-serif")}`),
-      document.fonts.load(`900 40px ${fontFamily("--font-anybody", "sans-serif")}`),
-      document.fonts.load(`600 20px ${fontFamily("--font-hanken", "sans-serif")}`),
-      document.fonts.load(`500 30px ${fontFamily("--font-jetbrains", "monospace")}`),
+      document.fonts.load(`800 40px ${fontFamily("--face-display", "sans-serif")}`),
+      document.fonts.load(`900 40px ${fontFamily("--face-display", "sans-serif")}`),
+      document.fonts.load(`600 20px ${fontFamily("--face-body", "sans-serif")}`),
+      document.fonts.load(`500 30px ${fontFamily("--face-code", "monospace")}`),
     ]);
     await document.fonts.ready;
   } catch {

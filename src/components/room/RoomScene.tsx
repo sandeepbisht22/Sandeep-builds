@@ -14,7 +14,7 @@ import { BeanBag, Shelf } from "./objects/Shelf";
 import { Shell } from "./objects/Shell";
 import { TrekCorner } from "./objects/TrekCorner";
 import { Turntable } from "./objects/Turntable";
-import { WindowView } from "./objects/WindowView";
+import { WindowBackdrop, WindowView } from "./objects/WindowView";
 
 /** Sandeep's room. Every object you can hover leads to one chapter of the page. */
 export function RoomScene() {
@@ -24,6 +24,7 @@ export function RoomScene() {
       <Shell />
       <Decor />
       <Ambience />
+      <WindowBackdrop />
       <Hoverable id="desk">
         <Desk />
       </Hoverable>

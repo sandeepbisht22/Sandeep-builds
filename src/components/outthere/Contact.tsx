@@ -25,8 +25,9 @@ export function Email({ email }: EmailProps) {
     <div className="flex flex-col items-start gap-5">
       <a
         href={`mailto:${email}`}
-        data-cursor="Write to me"
-        className="type-display break-all text-[10vw] leading-[0.9] text-lamp underline decoration-2 underline-offset-[0.12em] [--wdth:60] hover:[--wdth:76] md:text-[5.6vw]"
+        data-cursor="Email"
+        data-cursor-title="Say hello"
+        className="type-display break-all text-[10vw] leading-[0.9] text-lamp underline decoration-2 underline-offset-[0.12em] [--wdth:77] hover:[--wdth:92] md:text-[5.6vw]"
       >
         {email}
       </a>
@@ -46,7 +47,9 @@ export function BackToRoom() {
     <button
       type="button"
       onClick={() => scrollToChapter("room")}
-      data-cursor="Walk back in"
+      data-cursor="Room"
+      data-cursor-title="My room"
+      data-cursor-path="/"
       className="rounded-full bg-lamp px-6 py-3 font-bold text-ink shadow-[0_0_0_4px_var(--color-paper)] transition-transform hover:scale-105"
     >
       Back to the room

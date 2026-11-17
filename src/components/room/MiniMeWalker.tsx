@@ -7,6 +7,7 @@ import type { Group, SpotLight } from "three";
 import { MiniMe3D } from "@/components/minime/MiniMe3D";
 import { createControl, type MiniMeControl } from "@/components/minime/rig";
 import { getChapter } from "@/lib/chapters";
+import { CURSOR_HOST, type CursorTarget } from "@/lib/cursor";
 import { useExperience } from "@/lib/store";
 import { travel } from "@/lib/travel";
 import { interactive } from "./Hoverable";
@@ -16,6 +17,8 @@ import { ANCHORS, TRAVEL, anchorAt } from "./layout";
 const HOLD = 0.18;
 /** A touch bigger than life-size next to the furniture, so he reads from the hero camera. */
 const ROOM_SCALE = 1.2;
+/** Hovering mini-me reads <MiniMe /> and offers a wave. */
+const MINI_ME_TARGET: CursorTarget = { tag: "MiniMe", title: "Say hi", address: { host: CURSOR_HOST, path: "/say-hi" }, tip: true };
 
 /**
  * Puts 3D mini-me in the room: his spot follows the scroll, he faces the way he walks,
@@ -75,11 +78,11 @@ export function MiniMeWalker() {
     event.stopPropagation();
     if (!interactive()) return;
     setHovered(true);
-    useExperience.getState().setCursorLabel("That's me. Say hi");
+    useExperience.getState().setCursorTarget(MINI_ME_TARGET);
   };
   const onOut = (): void => {
     setHovered(false);
-    if (useExperience.getState().hovered === null) useExperience.getState().setCursorLabel(null);
+    if (useExperience.getState().hovered === null) useExperience.getState().setCursorTarget(null);
   };
   const onClick = (event: ThreeEvent<MouseEvent>): void => {
     event.stopPropagation();

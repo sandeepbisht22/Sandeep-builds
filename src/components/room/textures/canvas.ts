@@ -36,7 +36,7 @@ export function seeded(seed: number): () => number {
   };
 }
 
-/** Resolve a next/font CSS variable (e.g. --font-anybody) to a family list usable in ctx.font. */
+/** Resolve a next/font CSS variable (e.g. --face-display) to a family list usable in ctx.font. */
 export function fontFamily(variable: string, fallback: string): string {
   if (typeof window === "undefined") return fallback;
   const value = getComputedStyle(document.documentElement).getPropertyValue(variable).trim();

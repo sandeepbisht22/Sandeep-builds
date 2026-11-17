@@ -32,7 +32,7 @@ export function Preloader() {
         const value = Math.round(progress.value);
         if (digits.current) {
           digits.current.textContent = String(value).padStart(3, "0");
-          digits.current.style.setProperty("--wdth", String(50 + value * 0.6));
+          digits.current.style.setProperty("--wdth", String(68 + value * 0.55));
         }
         if (bar.current) bar.current.style.transform = `scaleX(${value / 100})`;
       };
@@ -84,7 +84,7 @@ export function Preloader() {
       </div>
       <span
         ref={digits}
-        className="type-display block text-[38vw] tabular-nums leading-[0.75] text-paper [--wdth:50] md:text-[27vw]"
+        className="type-display block text-[38vw] tabular-nums leading-[0.75] text-paper [--wdth:68] md:text-[27vw]"
         aria-label="Loading"
       >
         000

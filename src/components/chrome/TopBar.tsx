@@ -13,11 +13,12 @@ export function TopBar({ home = "#top" }: TopBarProps) {
     <header className="pointer-events-none fixed inset-x-0 top-0 z-40 flex items-start justify-between px-[4vw] pt-5 md:pt-7">
       <a
         href={home}
-        data-cursor="Back to the room"
+        data-cursor="Room"
+        data-cursor-title="My room"
         className="pointer-events-auto grid h-12 w-12 -rotate-6 place-items-center rounded-2xl bg-lamp text-ink shadow-[0_0_0_4px_var(--color-paper),0_8px_18px_rgb(0_0_0/0.45)] transition-transform duration-300 hover:rotate-0"
         aria-label={`${site.name}, back to the top`}
       >
-        <span className="type-display text-2xl [--wdth:80]">SB</span>
+        <span className="type-display text-2xl [--wdth:95]">SB</span>
       </a>
       <div className="pointer-events-auto flex items-center gap-5">
         <SoundToggle />

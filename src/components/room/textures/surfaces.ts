@@ -218,7 +218,7 @@ export function posterTexture(): CanvasTexture {
     ctx.stroke();
   }
   ctx.fillStyle = "#14121c";
-  ctx.font = `900 64px ${fontFamily("--font-anybody", "sans-serif")}`;
+  ctx.font = `900 64px ${fontFamily("--face-display", "sans-serif")}`;
   ctx.textAlign = "center";
   ctx.fillText("NO DAYS OFF", cx, height - 70);
   return toTexture(p);
@@ -307,10 +307,10 @@ export function vinylTexture(): CanvasTexture {
   ctx.arc(c, c, 88, 0, Math.PI * 2);
   ctx.fill();
   ctx.fillStyle = "#14121c";
-  ctx.font = `900 40px ${fontFamily("--font-anybody", "sans-serif")}`;
+  ctx.font = `900 40px ${fontFamily("--face-display", "sans-serif")}`;
   ctx.textAlign = "center";
   ctx.fillText("SB", c, c - 22);
-  ctx.font = `600 18px ${fontFamily("--font-hanken", "sans-serif")}`;
+  ctx.font = `600 18px ${fontFamily("--face-body", "sans-serif")}`;
   ctx.fillText("side A", c, c + 46);
   ctx.beginPath();
   ctx.arc(c, c, 7, 0, Math.PI * 2);
@@ -338,7 +338,7 @@ export function clockFaceTexture(): CanvasTexture {
     ctx.stroke();
   }
   ctx.fillStyle = "#9b98b3";
-  ctx.font = `600 30px ${fontFamily("--font-hanken", "sans-serif")}`;
+  ctx.font = `600 30px ${fontFamily("--face-body", "sans-serif")}`;
   ctx.textAlign = "center";
   ctx.fillText("Haldwani", c, c + 104);
   return toTexture(p);
@@ -405,9 +405,9 @@ export function trailMapTexture(): CanvasTexture {
   ctx.arc(110, 640, 11, 0, Math.PI * 2);
   ctx.fill();
   ctx.fillStyle = "#2a1f18";
-  ctx.font = `700 30px ${fontFamily("--font-hanken", "sans-serif")}`;
+  ctx.font = `700 30px ${fontFamily("--face-body", "sans-serif")}`;
   ctx.fillText("Haldwani", 136, 650);
-  ctx.font = `italic 600 44px ${fontFamily("--font-hanken", "sans-serif")}`;
+  ctx.font = `italic 600 44px ${fontFamily("--face-body", "sans-serif")}`;
   ctx.fillText("Kumaon", 40, 70);
   ctx.strokeStyle = "#2a1f18";
   ctx.lineWidth = 3;
@@ -426,7 +426,7 @@ export function scarfTexture(): CanvasTexture {
     ctx.fillRect(0, i * band, width, band);
   }
   ctx.fillStyle = "#f2eadb";
-  ctx.font = `900 34px ${fontFamily("--font-anybody", "sans-serif")}`;
+  ctx.font = `900 34px ${fontFamily("--face-display", "sans-serif")}`;
   ctx.textAlign = "center";
   ctx.save();
   ctx.translate(width / 2, height / 2);

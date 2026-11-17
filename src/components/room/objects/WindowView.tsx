@@ -8,20 +8,28 @@ import { nightViewTexture } from "../textures/surfaces";
 const INNER_X = -ROOM.half;
 const FRAME = "#c8c0ae";
 
-/** Window in the left wall looking out at the hills at night. */
-export function WindowView() {
+/**
+ * The hills at night, set back behind the wall so they parallax as the camera moves.
+ * It's bigger than the opening, so it stays outside the window's hover outline: the
+ * outline draws through walls and would otherwise spill over the jerseys next door.
+ */
+export function WindowBackdrop() {
   const view = usePainted(nightViewTexture);
+  return (
+    <mesh position={[INNER_X - 0.55, WINDOW.y + 0.05, WINDOW.z]} rotation-y={Math.PI / 2}>
+      <planeGeometry args={[2.9, 2.1]} />
+      <meshBasicMaterial map={view} toneMapped={false} />
+    </mesh>
+  );
+}
+
+/** Window in the left wall: frame, glass and sill. The view through it is WindowBackdrop. */
+export function WindowView() {
   const { z, y, width, height } = WINDOW;
   const bar = 0.06;
 
   return (
     <group>
-      {/* the view, set back behind the wall so it parallaxes as the camera moves */}
-      <mesh position={[INNER_X - 0.55, y + 0.05, z]} rotation-y={Math.PI / 2}>
-        <planeGeometry args={[2.9, 2.1]} />
-        <meshBasicMaterial map={view} toneMapped={false} />
-      </mesh>
-
       {/* frame */}
       <group position={[INNER_X + 0.01, y, z]}>
         {[

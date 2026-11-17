@@ -37,7 +37,7 @@ export function HeroName({ first, last }: HeroNameProps) {
       const scrub = { trigger: hero, start: "top top", end: "bottom top", scrub: true };
       gsap.to(".hero-line-first", { yPercent: -55, ease: "none", scrollTrigger: scrub });
       gsap.to(".hero-line-last", { yPercent: -15, ease: "none", scrollTrigger: scrub });
-      gsap.fromTo(root.current, { "--wdth": 58 }, { "--wdth": 112, ease: "none", scrollTrigger: scrub });
+      gsap.fromTo(root.current, { "--wdth": 62 }, { "--wdth": 125, ease: "none", scrollTrigger: scrub });
     },
     { scope: root },
   );
@@ -54,7 +54,7 @@ export function HeroName({ first, last }: HeroNameProps) {
     <h1
       ref={root}
       id="hero-name"
-      className="type-display pointer-events-none absolute left-[3.6vw] top-[13vh] z-0 flex select-none flex-col text-[21vw] uppercase text-paper [--wdth:58] md:top-[15vh] md:text-[12.8vw]"
+      className="type-display pointer-events-none absolute left-[3.6vw] top-[13vh] z-0 flex select-none flex-col text-[17vw] uppercase text-paper [--wdth:62] md:top-[15vh] md:text-[9.6vw]"
     >
       <span className="hero-line-first block overflow-hidden pb-[0.05em]">
         <Letters word={first} />

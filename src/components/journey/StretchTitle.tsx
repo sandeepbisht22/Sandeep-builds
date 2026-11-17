@@ -9,7 +9,7 @@ interface StretchTitleProps {
   className?: string;
 }
 
-/** Section heading whose letters widen (Anybody's width axis) as its sheet slides up. */
+/** Section heading whose letters widen (Archivo's width axis) as its sheet slides up. */
 export function StretchTitle({ id, children, className = "" }: StretchTitleProps) {
   const ref = useRef<HTMLHeadingElement>(null);
 
@@ -18,9 +18,9 @@ export function StretchTitle({ id, children, className = "" }: StretchTitleProps
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
       gsap.fromTo(
         ref.current,
-        { "--wdth": 44, yPercent: 18 },
+        { "--wdth": 62, yPercent: 18 },
         {
-          "--wdth": 66,
+          "--wdth": 82,
           yPercent: 0,
           ease: "none",
           scrollTrigger: { trigger: ref.current, start: "top bottom", end: "top 35%", scrub: true },
@@ -31,7 +31,7 @@ export function StretchTitle({ id, children, className = "" }: StretchTitleProps
   );
 
   return (
-    <h2 ref={ref} id={id} className={`type-display text-[15vw] [--wdth:66] md:text-[9.5vw] ${className}`}>
+    <h2 ref={ref} id={id} className={`type-display text-[15vw] [--wdth:82] md:text-[9.5vw] ${className}`}>
       {children}
     </h2>
   );

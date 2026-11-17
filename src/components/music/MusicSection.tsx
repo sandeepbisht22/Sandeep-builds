@@ -18,7 +18,7 @@ export function MusicSection() {
       <MusicStage>
         <Vinyl />
         <div>
-          <p data-track className="type-display text-[22vw] leading-[0.8] text-ink [--wdth:58] md:text-[10vw]">
+          <p data-track className="type-display text-[22vw] leading-[0.8] text-ink [--wdth:75] md:text-[10vw]">
             {music.track}
           </p>
           <p className="mt-4 text-2xl font-semibold text-ink">{music.artist}</p>

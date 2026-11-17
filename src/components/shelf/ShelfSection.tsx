@@ -64,7 +64,7 @@ export function ShelfSection() {
     >
       <div className="grid gap-20 lg:grid-cols-12 lg:gap-12">
         <div className="lg:col-span-7">
-          <h3 className="type-display text-6xl text-paper [--wdth:70] md:text-7xl">Anime</h3>
+          <h3 className="type-display text-6xl text-paper [--wdth:86] md:text-7xl">Anime</h3>
           <div className="mt-10 flex items-end gap-2 border-b-[14px] border-[#3a2a20] pb-0 sm:gap-3">
             {anime.map((show) => {
               const spine = SPINES[show.title];
@@ -86,7 +86,7 @@ export function ShelfSection() {
         </div>
 
         <div className="lg:col-span-5">
-          <h3 className="type-display text-6xl text-paper [--wdth:70] md:text-7xl">Books</h3>
+          <h3 className="type-display text-6xl text-paper [--wdth:86] md:text-7xl">Books</h3>
           <div className="mt-10 grid grid-cols-3 gap-4 [perspective:900px]">
             {books.favourites.map((book, i) => {
               const cover = COVERS[i % COVERS.length];

@@ -5,8 +5,8 @@ export type ChapterId = "room" | "desk" | "wall" | "kit" | "turntable" | "shelf"
 
 export interface Chapter {
   id: ChapterId;
-  /** What the visitor sees when hovering the object in the room. */
-  hoverLabel: string;
+  /** Component-style name the cursor shows over the object, e.g. "Desk" → <Desk />. */
+  tag: string;
   /** Section heading once the camera has moved into the object. */
   title: string;
   /** What mini-me wears while we're here. */
@@ -14,13 +14,13 @@ export interface Chapter {
 }
 
 export const chapters: readonly Chapter[] = [
-  { id: "room", hoverLabel: "My room", title: "My room", outfit: "casual" },
-  { id: "desk", hoverLabel: "The desk: what I build", title: "Things I've built", outfit: "coding" },
-  { id: "wall", hoverLabel: "The photo wall: how I got here", title: "How I got here", outfit: "college" },
-  { id: "kit", hoverLabel: "The kit corner: football and cricket", title: "Matchday", outfit: "football" },
-  { id: "turntable", hoverLabel: "The turntable: what's on repeat", title: "On repeat", outfit: "street" },
-  { id: "shelf", hoverLabel: "The shelf: anime and books", title: "The shelf", outfit: "cozy" },
-  { id: "window", hoverLabel: "The window: trails and travel", title: "Out there", outfit: "trek" },
+  { id: "room", tag: "Room", title: "My room", outfit: "casual" },
+  { id: "desk", tag: "Desk", title: "Things I've built", outfit: "coding" },
+  { id: "wall", tag: "PhotoWall", title: "How I got here", outfit: "college" },
+  { id: "kit", tag: "KitCorner", title: "Matchday", outfit: "football" },
+  { id: "turntable", tag: "Turntable", title: "On repeat", outfit: "street" },
+  { id: "shelf", tag: "Shelf", title: "The shelf", outfit: "cozy" },
+  { id: "window", tag: "Window", title: "Out there", outfit: "trek" },
 ] as const;
 
 export function getChapter(id: ChapterId): Chapter {

@@ -9,6 +9,7 @@ import { Tilt } from "@/components/work/Tilt";
 import { StretchTitle } from "@/components/journey/StretchTitle";
 import { getProject, projects } from "@/content/projects";
 import type { Project } from "@/content/types";
+import { componentName } from "@/lib/cursor";
 
 const PLATFORM = {
   web: { label: "Web app", links: ["Visit the site", "Source code"] },
@@ -94,7 +95,7 @@ async function ProjectContent({ params }: { params: Promise<{ slug: string }> })
 
   return (
     <main className="px-[4vw] pb-24 pt-32 md:pt-40">
-      <Link href="/#chapter-desk" data-cursor="Back to the room" className="text-sm text-haze transition-colors hover:text-lamp">
+      <Link href="/#chapter-desk" data-cursor="Room" data-cursor-title="My room" className="text-sm text-haze transition-colors hover:text-lamp">
         Back to the room
       </Link>
 
@@ -118,7 +119,7 @@ async function ProjectContent({ params }: { params: Promise<{ slug: string }> })
       </Tilt>
 
       <section className="mt-28 grid gap-12 md:grid-cols-12" aria-labelledby="what">
-        <h2 id="what" className="type-display text-6xl text-paper [--wdth:68] md:col-span-4 md:text-7xl">
+        <h2 id="what" className="type-display text-6xl text-paper [--wdth:84] md:col-span-4 md:text-7xl">
           What it does
         </h2>
         <div className="md:col-span-8">
@@ -135,7 +136,7 @@ async function ProjectContent({ params }: { params: Promise<{ slug: string }> })
       </section>
 
       <section className="mt-28 grid gap-12 md:grid-cols-12" aria-labelledby="built">
-        <h2 id="built" className="type-display text-6xl text-paper [--wdth:68] md:col-span-4 md:text-7xl">
+        <h2 id="built" className="type-display text-6xl text-paper [--wdth:84] md:col-span-4 md:text-7xl">
           Built with
         </h2>
         <ul className="flex flex-wrap content-start gap-3 md:col-span-8">
@@ -151,7 +152,7 @@ async function ProjectContent({ params }: { params: Promise<{ slug: string }> })
       </section>
 
       <section className="mt-28" aria-labelledby="screens">
-        <h2 id="screens" className="type-display text-6xl text-paper [--wdth:68] md:text-7xl">
+        <h2 id="screens" className="type-display text-6xl text-paper [--wdth:84] md:text-7xl">
           Screens
         </h2>
         <div className="mt-10">
@@ -164,12 +165,13 @@ async function ProjectContent({ params }: { params: Promise<{ slug: string }> })
 
       <Link
         href={`/work/${next.slug}`}
-        data-cursor="Next project"
+        data-cursor={componentName(next.name)}
+        data-cursor-title={next.name}
         className="group mt-36 grid gap-8 rounded-[36px] border border-line p-8 transition-colors hover:border-lamp md:grid-cols-12 md:items-center md:p-12"
       >
         <span className="md:col-span-7">
           <span className="block text-haze">Next project</span>
-          <span className="type-display mt-3 block text-[16vw] leading-[0.85] text-paper transition-colors [--wdth:62] group-hover:text-lamp md:text-[8vw]">
+          <span className="type-display mt-3 block text-[16vw] leading-[0.85] text-paper transition-colors [--wdth:79] group-hover:text-lamp md:text-[8vw]">
             {next.name}
           </span>
         </span>

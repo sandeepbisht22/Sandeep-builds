@@ -12,6 +12,7 @@ const config: Config = {
     "src/components/room/layout.ts",
     "src/components/minime/hairLocks.ts",
     "src/lib/chapters.ts",
+    "src/lib/cursor.ts",
     "src/content/**/*.ts",
     "!src/content/types.ts",
   ],

@@ -19,9 +19,9 @@
 }
 
 @theme inline {
-  --font-display: var(--font-anybody), "Arial Narrow", sans-serif;
-  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
-  --font-code: var(--font-jetbrains), ui-monospace, monospace;
+  --font-display: var(--face-display), "Arial Narrow", sans-serif;
+  --font-sans: var(--face-body), ui-sans-serif, system-ui, sans-serif;
+  --font-code: var(--face-code), ui-monospace, monospace;
 }
 
 @layer base {
@@ -83,11 +83,11 @@ html.lenis body {
 }
 
 @layer components {
-  /* Display type: Anybody's width axis is driven by --wdth so GSAP can animate it */
+  /* Display type: Archivo's width axis (62 condensed … 125 expanded) is driven by --wdth so GSAP can animate it */
   .type-display {
     font-family: var(--font-display);
     font-variation-settings: "wdth" var(--wdth, 100);
-    font-weight: var(--wght, 800);
+    font-weight: var(--wght, 900);
     line-height: 0.82;
     letter-spacing: -0.01em;
   }
@@ -129,6 +129,10 @@ html.is-loading body {
   30% { transform: scale(1); }
   80% { opacity: 1; }
   100% { opacity: 0; transform: translateY(-20px); }
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
 }
 
 @keyframes eq {

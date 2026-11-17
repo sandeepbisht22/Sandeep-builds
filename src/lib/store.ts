@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import type Lenis from "lenis";
 import type { ChapterId } from "./chapters";
+import type { CursorTarget } from "./cursor";
 
 interface ExperienceState {
   /** The preloader has finished and the page is interactive. */
@@ -11,8 +12,8 @@ interface ExperienceState {
   sceneReady: boolean;
   /** Room object under the pointer (hero only). */
   hovered: ChapterId | null;
-  /** Text shown inside the custom cursor. */
-  cursorLabel: string | null;
+  /** What the custom cursor names and shows in its browser header (room objects only; DOM targets use data-cursor). */
+  cursorTarget: CursorTarget | null;
   /** True while any part of the room is on screen; the canvas pauses otherwise. */
   roomVisible: boolean;
   lenis: Lenis | null;
@@ -22,7 +23,7 @@ interface ExperienceState {
   setReady: (ready: boolean) => void;
   setSceneReady: (ready: boolean) => void;
   setHovered: (id: ChapterId | null) => void;
-  setCursorLabel: (label: string | null) => void;
+  setCursorTarget: (target: CursorTarget | null) => void;
   setRoomVisible: (visible: boolean) => void;
   setLenis: (lenis: Lenis | null) => void;
 }
@@ -31,7 +32,7 @@ export const useExperience = create<ExperienceState>((set) => ({
   ready: false,
   sceneReady: false,
   hovered: null,
-  cursorLabel: null,
+  cursorTarget: null,
   roomVisible: true,
   lenis: null,
   soundOn: false,
@@ -39,7 +40,7 @@ export const useExperience = create<ExperienceState>((set) => ({
   setReady: (ready) => set({ ready }),
   setSceneReady: (sceneReady) => set({ sceneReady }),
   setHovered: (hovered) => set({ hovered }),
-  setCursorLabel: (cursorLabel) => set({ cursorLabel }),
+  setCursorTarget: (cursorTarget) => set({ cursorTarget }),
   setRoomVisible: (roomVisible) => set({ roomVisible }),
   setLenis: (lenis) => set({ lenis }),
 }));

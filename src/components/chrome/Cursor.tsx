@@ -1,95 +1,182 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { gsap } from "@/lib/gsap";
+import { sameTarget, targetFromAttributes, type CursorTarget } from "@/lib/cursor";
 import { useExperience } from "@/lib/store";
+import { BrowserBar } from "./BrowserBar";
+
+/** Where the browser header sits relative to the pointer, and how close it may get to the viewport edge. */
+const TIP_OFFSET = { x: 22, y: 26 };
+const EDGE = 12;
+/** The resting dot between < and />, in px (matches the dot's h-1.5 w-1.5 mx-[5px]). */
+const DOT = { size: 6, margin: 5 };
+
+function readTarget(el: HTMLElement): CursorTarget | null {
+  return targetFromAttributes(
+    {
+      tag: el.dataset.cursor,
+      title: el.dataset.cursorTitle,
+      path: el.dataset.cursorPath,
+      tip: el.dataset.cursorTip,
+      href: el.getAttribute("href"),
+    },
+    window.location.origin,
+  );
+}
 
 /**
- * A lamp-coloured dot with a trailing ring. The ring opens up and shows a label over
- * anything marked with data-cursor="Label", and over objects in the 3D room.
+ * A JSX tag for a cursor: `< • />` at rest. Over anything you can click it names it, so the
+ * desk reads `<Desk />`, and a tiny browser header floats beside it with the address you'd land on.
+ * DOM targets declare themselves with data-cursor (plus -title, -path, -tip); room objects go through the store.
  */
 export function Cursor() {
-  const dotRef = useRef<HTMLDivElement>(null);
-  const ringRef = useRef<HTMLDivElement>(null);
-  const labelRef = useRef<HTMLSpanElement>(null);
+  const tagRef = useRef<HTMLDivElement>(null);
+  const dotRef = useRef<HTMLSpanElement>(null);
+  const nameBoxRef = useRef<HTMLSpanElement>(null);
+  const nameRef = useRef<HTMLSpanElement>(null);
+  const tipRef = useRef<HTMLDivElement>(null);
+  /** What's under the pointer right now. */
+  const [current, setCurrent] = useState<CursorTarget | null>(null);
+  /** The last thing hovered: kept on screen while the cursor closes. */
+  const [shown, setShown] = useState<CursorTarget | null>(null);
+  /** Bumped on every new hover so the address types itself in again. */
+  const [hoverCount, setHoverCount] = useState(0);
 
   useEffect(() => {
-    const dot = dotRef.current;
-    const ring = ringRef.current;
-    const label = labelRef.current;
-    if (!dot || !ring || !label || !window.matchMedia("(pointer: fine)").matches) return;
+    const tag = tagRef.current;
+    const tip = tipRef.current;
+    if (!tag || !tip || !window.matchMedia("(pointer: fine)").matches) return;
 
     const root = document.documentElement;
     root.classList.add("has-cursor");
-    gsap.set([dot, ring], { xPercent: -50, yPercent: -50, opacity: 0 });
+    gsap.set(tag, { xPercent: -50, yPercent: -50, autoAlpha: 0 });
+    gsap.set(tip, { autoAlpha: 0 });
 
-    const dotX = gsap.quickTo(dot, "x", { duration: 0.08, ease: "power3.out" });
-    const dotY = gsap.quickTo(dot, "y", { duration: 0.08, ease: "power3.out" });
-    const ringX = gsap.quickTo(ring, "x", { duration: 0.42, ease: "power3.out" });
-    const ringY = gsap.quickTo(ring, "y", { duration: 0.42, ease: "power3.out" });
+    const tagX = gsap.quickTo(tag, "x", { duration: 0.12, ease: "power3.out" });
+    const tagY = gsap.quickTo(tag, "y", { duration: 0.12, ease: "power3.out" });
+    const tipX = gsap.quickTo(tip, "x", { duration: 0.38, ease: "power3.out" });
+    const tipY = gsap.quickTo(tip, "y", { duration: 0.38, ease: "power3.out" });
 
-    let domLabel: string | null = null;
-    let shown: string | null = null;
+    const pointer = { x: 0, y: 0 };
+    let domTarget: HTMLElement | null = null;
+    let active: CursorTarget | null = null;
 
-    const show = (text: string | null): void => {
-      if (text === shown) return;
-      shown = text;
-      const open = text !== null;
-      label.textContent = text ?? "";
-      gsap.to(ring, {
-        width: open ? Math.max(96, (text?.length ?? 0) * 8.4 + 40) : 38,
-        height: open ? 44 : 38,
-        backgroundColor: open ? "rgba(255,138,31,1)" : "rgba(255,138,31,0)",
-        duration: 0.45,
-        ease: "expo.out",
-        overwrite: "auto",
-      });
-      gsap.to(label, { opacity: open ? 1 : 0, duration: open ? 0.3 : 0.12, delay: open ? 0.08 : 0, overwrite: "auto" });
-      gsap.to(dot, { scale: open ? 0 : 1, duration: 0.3, overwrite: "auto" });
+    // Beside the pointer, flipped to the other side near the right or bottom edge.
+    const placeTip = (jump: boolean): void => {
+      const width = tip.offsetWidth;
+      const height = tip.offsetHeight;
+      let x = pointer.x + TIP_OFFSET.x;
+      if (x + width > window.innerWidth - EDGE) x = pointer.x - TIP_OFFSET.x - width;
+      let y = pointer.y + TIP_OFFSET.y;
+      if (y + height > window.innerHeight - EDGE) y = pointer.y - TIP_OFFSET.y - height;
+      x = Math.max(EDGE, x);
+      y = Math.max(EDGE, y);
+      tipX(x, jump ? x : undefined);
+      tipY(y, jump ? y : undefined);
+    };
+
+    const apply = (next: CursorTarget | null): void => {
+      if (sameTarget(next, active)) return;
+      const opening = active === null && next !== null;
+      active = next;
+      setCurrent(next);
+      if (next === null) return;
+      setShown(next);
+      setHoverCount((count) => count + 1);
+      if (opening) placeTip(true);
     };
 
     const onMove = (event: PointerEvent): void => {
-      dotX(event.clientX);
-      dotY(event.clientY);
-      ringX(event.clientX);
-      ringY(event.clientY);
-      gsap.to([dot, ring], { opacity: 1, duration: 0.3, overwrite: "auto" });
+      pointer.x = event.clientX;
+      pointer.y = event.clientY;
+      tagX(pointer.x);
+      tagY(pointer.y);
+      placeTip(false);
+      gsap.to(tag, { autoAlpha: 1, duration: 0.3, overwrite: "auto" });
     };
     const onLeave = (): void => {
-      gsap.to([dot, ring], { opacity: 0, duration: 0.3, overwrite: "auto" });
+      gsap.to([tag, tip], { autoAlpha: 0, duration: 0.25, overwrite: "auto" });
     };
-    // DOM hover targets declare their label with data-cursor; room objects go through the store.
     const onOver = (event: PointerEvent): void => {
-      const target = (event.target as HTMLElement | null)?.closest<HTMLElement>("[data-cursor]");
-      domLabel = target?.dataset.cursor ?? null;
-      show(domLabel ?? useExperience.getState().cursorLabel);
+      domTarget = (event.target as HTMLElement | null)?.closest<HTMLElement>("[data-cursor]") ?? null;
+      apply(domTarget ? readTarget(domTarget) : useExperience.getState().cursorTarget);
+    };
+    // Buttons like the sound toggle relabel themselves when clicked; read them again once React has.
+    const onClick = (): void => {
+      requestAnimationFrame(() => {
+        if (domTarget) apply(readTarget(domTarget));
+      });
+    };
+    const onDown = (): void => {
+      gsap.to(tag, { scale: 0.86, duration: 0.12, ease: "power2.out" });
+    };
+    const onUp = (): void => {
+      gsap.to(tag, { scale: 1, duration: 0.4, ease: "back.out(3)" });
     };
     const unsubscribe = useExperience.subscribe((state) => {
-      if (domLabel === null) show(state.cursorLabel);
+      if (domTarget === null) apply(state.cursorTarget);
     });
 
     window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerdown", onDown);
+    window.addEventListener("pointerup", onUp);
     document.addEventListener("pointerover", onOver);
+    document.addEventListener("click", onClick);
     root.addEventListener("pointerleave", onLeave);
     return () => {
       unsubscribe();
       window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("pointerup", onUp);
       document.removeEventListener("pointerover", onOver);
+      document.removeEventListener("click", onClick);
       root.removeEventListener("pointerleave", onLeave);
       root.classList.remove("has-cursor");
-      gsap.killTweensOf([dot, ring, label]);
+      gsap.killTweensOf([tag, tip]);
     };
   }, []);
 
+  // Open or close the tag and the browser header whenever the target changes.
+  useEffect(() => {
+    const nameBox = nameBoxRef.current;
+    const name = nameRef.current;
+    const dot = dotRef.current;
+    const tip = tipRef.current;
+    if (!nameBox || !name || !dot || !tip) return;
+    const open = current !== null;
+    const showTip = open && current.tip;
+    gsap.to(nameBox, { width: open ? name.offsetWidth : 0, duration: 0.45, ease: "expo.out", overwrite: "auto" });
+    gsap.to(dot, {
+      scale: open ? 0 : 1,
+      width: open ? 0 : DOT.size,
+      marginLeft: open ? 0 : DOT.margin,
+      marginRight: open ? 0 : DOT.margin,
+      duration: 0.3,
+      ease: "power3.out",
+      overwrite: "auto",
+    });
+    gsap.to(tip, { autoAlpha: showTip ? 1 : 0, scale: showTip ? 1 : 0.94, duration: showTip ? 0.25 : 0.15, ease: "power2.out" });
+  }, [current, shown]);
+
   return (
     <div aria-hidden data-cursor-root className="pointer-events-none fixed inset-0 z-[100] hidden [@media(pointer:fine)]:block">
-      <div
-        ref={ringRef}
-        className="absolute left-0 top-0 flex h-[38px] w-[38px] items-center justify-center rounded-full border border-lamp/70"
-      >
-        <span ref={labelRef} className="whitespace-nowrap px-4 text-[0.8125rem] font-semibold leading-none text-ink opacity-0" />
+      <div ref={tipRef} className="invisible absolute left-0 top-0 w-[290px] origin-top-left">
+        {shown && <BrowserBar title={shown.title} address={shown.address} playKey={hoverCount} />}
       </div>
-      <div ref={dotRef} className="absolute left-0 top-0 h-2 w-2 rounded-full bg-lamp" />
+      <div
+        ref={tagRef}
+        className="invisible absolute left-0 top-0 flex items-center whitespace-pre rounded-full bg-ink/55 px-2 py-1 font-code text-[15px] font-bold leading-none text-lamp backdrop-blur-[2px]"
+      >
+        <span>&lt;</span>
+        <span ref={dotRef} className="mx-[5px] inline-block h-1.5 w-1.5 rounded-full bg-lamp" />
+        <span ref={nameBoxRef} className="inline-block w-0 overflow-hidden">
+          <span ref={nameRef} className="inline-block text-paper">
+            {shown ? `${shown.tag} ` : ""}
+          </span>
+        </span>
+        <span>/&gt;</span>
+      </div>
     </div>
   );
 }

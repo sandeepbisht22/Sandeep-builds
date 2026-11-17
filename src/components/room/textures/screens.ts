@@ -33,8 +33,8 @@ const CODE: Token[][] = [
 export function codeEditorTexture(): CanvasTexture {
   const p = paint(1280, 736);
   const { ctx, width, height } = p;
-  const mono = fontFamily("--font-jetbrains", "monospace");
-  const sans = fontFamily("--font-hanken", "sans-serif");
+  const mono = fontFamily("--face-code", "monospace");
+  const sans = fontFamily("--face-body", "sans-serif");
   ctx.fillStyle = C.bg;
   ctx.fillRect(0, 0, width, height);
   ctx.fillStyle = C.panel;
@@ -88,7 +88,7 @@ export function codeEditorTexture(): CanvasTexture {
 export function tutorTexture(): CanvasTexture {
   const p = paint(512, 900);
   const { ctx, width, height } = p;
-  const sans = fontFamily("--font-hanken", "sans-serif");
+  const sans = fontFamily("--face-body", "sans-serif");
   const grad = ctx.createLinearGradient(0, 0, 0, height);
   grad.addColorStop(0, "#1c1f3a");
   grad.addColorStop(1, "#11132a");
@@ -144,7 +144,7 @@ export function tutorTexture(): CanvasTexture {
 export function readerTexture(): CanvasTexture {
   const p = paint(300, 600);
   const { ctx, width, height } = p;
-  const sans = fontFamily("--font-hanken", "sans-serif");
+  const sans = fontFamily("--face-body", "sans-serif");
   ctx.fillStyle = "#f3ead8";
   ctx.fillRect(0, 0, width, height);
   ctx.fillStyle = "#1b1424";
@@ -226,7 +226,7 @@ export function polaroidTexture(kind: PolaroidKind): CanvasTexture {
   ctx.fillRect(0, 0, width, 360);
   drawScene(ctx, kind, 22, 22, 256);
   ctx.fillStyle = "#2a2433";
-  ctx.font = `italic 600 30px ${fontFamily("--font-hanken", "sans-serif")}`;
+  ctx.font = `italic 600 30px ${fontFamily("--face-body", "sans-serif")}`;
   ctx.textAlign = "center";
   ctx.fillText(POLAROID_CAPTION[kind], width / 2, 330);
   return toTexture(p);
@@ -284,7 +284,7 @@ export function jerseyTexture(kind: JerseyKind): CanvasTexture {
   ctx.moveTo(492, 214);
   ctx.lineTo(410, 244);
   ctx.stroke();
-  const display = fontFamily("--font-anybody", "sans-serif");
+  const display = fontFamily("--face-display", "sans-serif");
   ctx.fillStyle = ink;
   ctx.textAlign = "center";
   ctx.font = `800 ${name.length > 5 ? 46 : 54}px ${display}`;
