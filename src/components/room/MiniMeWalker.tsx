@@ -17,6 +17,8 @@ import { ANCHORS, TRAVEL, anchorAt } from "./layout";
 const HOLD = 0.18;
 /** A touch bigger than life-size next to the furniture, so he reads from the hero camera. */
 const ROOM_SCALE = 1.2;
+/** He takes the pointer on one box around his body (in his own units), not on every lock of hair. */
+const HIT_BOX = { size: [0.62, 1.32, 0.62] as [number, number, number], y: 0.66 };
 /** Hovering mini-me reads <MiniMe /> and offers a wave. */
 const MINI_ME_TARGET: CursorTarget = { tag: "MiniMe", title: "Say hi", address: { host: CURSOR_HOST, path: "/say-hi" }, tip: true };
 
@@ -92,11 +94,15 @@ export function MiniMeWalker() {
   return (
     <>
       <spotLight ref={keyLight} angle={0.5} penumbra={1} intensity={11} distance={7} decay={2} color="#ffe9d2" />
-      <Select enabled={hovered}>
-        <group ref={group} scale={ROOM_SCALE} onPointerOver={onOver} onPointerOut={onOut} onClick={onClick}>
+      <group ref={group} scale={ROOM_SCALE}>
+        <Select enabled={hovered}>
           <MiniMe3D controlRef={control} initialOutfit="casual" />
-        </group>
-      </Select>
+        </Select>
+        <mesh position-y={HIT_BOX.y} onPointerOver={onOver} onPointerOut={onOut} onClick={onClick}>
+          <boxGeometry args={HIT_BOX.size} />
+          <meshBasicMaterial visible={false} />
+        </mesh>
+      </group>
     </>
   );
 }

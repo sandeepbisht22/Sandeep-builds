@@ -5,11 +5,12 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import type { Group, Mesh } from "three";
 import { MiniMe3D } from "@/components/minime/MiniMe3D";
 import { createControl, type MiniMeControl } from "@/components/minime/rig";
+import { CANVAS_RESIZE } from "@/components/room/canvasResize";
 import { usePainted } from "@/components/room/usePainted";
 import { cricketBallTexture } from "@/components/room/textures/surfaces";
 import { playSfx } from "@/lib/sound";
 import { BALLS_PER_OVER, LEFT_ALONE, judgeSwing, type SwingOutcome } from "./logic";
-import { Floodlights, Line, LookAt, Turf, ease, type GameProps } from "./shared";
+import { Floodlights, GAME_DPR, Line, LookAt, Turf, Warmup, ease, useWarm, type GameProps } from "./shared";
 
 type Phase = "waiting" | "runup" | "bowling" | "delivery" | "outcome";
 type Vec = [number, number, number];
@@ -240,9 +241,10 @@ function Over({ mode, round, onEvent }: Omit<GameProps, "active">) {
 }
 
 export default function CricketGame({ active, ...props }: GameProps) {
+  const [warm, onWarm] = useWarm();
   return (
     <div id="cricket-surface" className="h-full w-full">
-      <Canvas shadows="percentage" dpr={[1, 1.75]} frameloop={active ? "always" : "never"} camera={{ position: [0.45, 1.35, 2.5], fov: 38 }}>
+      <Canvas shadows="percentage" resize={CANVAS_RESIZE} dpr={GAME_DPR} frameloop={active && warm ? "always" : "never"} camera={{ position: [0.45, 1.35, 2.5], fov: 38 }}>
         <LookAt target={[0, 0.55, -8]} />
         <color attach="background" args={["#0a1328"]} />
         <fog attach="fog" args={["#0a1328", 12, 30]} />
@@ -254,7 +256,9 @@ export default function CricketGame({ active, ...props }: GameProps) {
         </mesh>
         <Line z={0.6} width={1.8} />
         <Line z={-11.6} width={1.8} />
-        <Over {...props} />
+        {/* A new round remounts the over, not the canvas, so the WebGL context (and its shaders) survive. */}
+        <Over key={props.round} {...props} />
+        <Warmup onWarm={onWarm} />
       </Canvas>
     </div>
   );

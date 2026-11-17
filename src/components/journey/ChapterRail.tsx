@@ -65,6 +65,22 @@ export function ChapterRail() {
       ScrollTrigger.sort();
       ScrollTrigger.refresh();
     });
+
+    // A late web font changes how tall the headings are, which moves every trigger below them.
+    let cancelled = false;
+    const refreshOnceFontsLoad = async (): Promise<void> => {
+      if (document.fonts.status === "loaded") return;
+      try {
+        await document.fonts.ready;
+      } catch {
+        return;
+      }
+      if (!cancelled) ScrollTrigger.refresh();
+    };
+    void refreshOnceFontsLoad();
+    return () => {
+      cancelled = true;
+    };
   });
 
   return null;

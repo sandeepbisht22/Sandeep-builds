@@ -61,11 +61,18 @@ export function Cursor() {
     const pointer = { x: 0, y: 0 };
     let domTarget: HTMLElement | null = null;
     let active: CursorTarget | null = null;
+    let onPage = false;
+    // The header's size, kept current by a ResizeObserver: reading it on every pointer move forced a layout.
+    const tipSize = { width: tip.offsetWidth, height: tip.offsetHeight };
+    const sizeObserver = new ResizeObserver(() => {
+      tipSize.width = tip.offsetWidth;
+      tipSize.height = tip.offsetHeight;
+    });
+    sizeObserver.observe(tip);
 
     // Beside the pointer, flipped to the other side near the right or bottom edge.
     const placeTip = (jump: boolean): void => {
-      const width = tip.offsetWidth;
-      const height = tip.offsetHeight;
+      const { width, height } = tipSize;
       let x = pointer.x + TIP_OFFSET.x;
       if (x + width > window.innerWidth - EDGE) x = pointer.x - TIP_OFFSET.x - width;
       let y = pointer.y + TIP_OFFSET.y;
@@ -93,9 +100,13 @@ export function Cursor() {
       tagX(pointer.x);
       tagY(pointer.y);
       placeTip(false);
+      if (onPage) return;
+      // Fade in once when the pointer arrives, not a fresh tween on every move.
+      onPage = true;
       gsap.to(tag, { autoAlpha: 1, duration: 0.3, overwrite: "auto" });
     };
     const onLeave = (): void => {
+      onPage = false;
       gsap.to([tag, tip], { autoAlpha: 0, duration: 0.25, overwrite: "auto" });
     };
     const onOver = (event: PointerEvent): void => {
@@ -118,13 +129,14 @@ export function Cursor() {
       if (domTarget === null) apply(state.cursorTarget);
     });
 
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerdown", onDown);
-    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("pointerdown", onDown, { passive: true });
+    window.addEventListener("pointerup", onUp, { passive: true });
     document.addEventListener("pointerover", onOver);
     document.addEventListener("click", onClick);
     root.addEventListener("pointerleave", onLeave);
     return () => {
+      sizeObserver.disconnect();
       unsubscribe();
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerdown", onDown);

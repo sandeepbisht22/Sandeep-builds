@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, type ReactNode } from "react";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 
 const STARS = Array.from({ length: 70 }, (_, i) => ({
@@ -17,9 +17,30 @@ const RIDGES = [
 
 const TRAIL = "M110 600 C220 560 260 520 360 515 C470 510 520 470 600 452 C700 430 760 445 820 420 C900 388 960 400 1010 360 C1040 335 1060 320 1080 300";
 
+/** Every layer shares one drawing space, cropped the same way, so they line up exactly. */
+const VIEW = { width: 1440, height: 640 } as const;
+const LAYER = "pointer-events-none absolute inset-0 h-full w-full";
+
+function Layer({ children, className = "", depth }: { children: ReactNode; className?: string; depth?: number }) {
+  return (
+    <svg
+      viewBox={`0 0 ${VIEW.width} ${VIEW.height}`}
+      preserveAspectRatio="xMidYMax slice"
+      aria-hidden
+      data-depth={depth}
+      className={`${LAYER} ${className}`}
+    >
+      {children}
+    </svg>
+  );
+}
+
 /**
  * The hills above Haldwani at night. Scrolling draws the trail up to the summit while mini-me
  * walks it; the ridges drift at different speeds.
+ *
+ * Built as stacked SVG layers: the sky and the foreground never change, each ridge is its own
+ * GPU layer that only moves, and just the thin trail-and-hiker layer repaints while you scroll.
  */
 export function TrailScene() {
   const root = useRef<HTMLDivElement>(null);
@@ -31,7 +52,8 @@ export function TrailScene() {
     () => {
       const path = trail.current;
       const hiker = walker.current;
-      if (!path || !hiker) return;
+      const box = root.current;
+      if (!path || !hiker || !box) return;
       const length = path.getTotalLength();
       const place = (progress: number): void => {
         const point = path.getPointAtLength(length * progress);
@@ -47,17 +69,20 @@ export function TrailScene() {
         return;
       }
       ScrollTrigger.create({
-        trigger: root.current,
+        trigger: box,
         start: "top 75%",
         end: "bottom 35%",
         scrub: 0.8,
         onUpdate: (self) => place(self.progress),
       });
-      gsap.utils.toArray<SVGPathElement>("[data-depth]").forEach((ridge) => {
+      // CSS pixels per drawing unit under "slice" cropping, so the ridges drift as far as they used to.
+      const unit = (): number => Math.max(box.clientWidth / VIEW.width, box.clientHeight / VIEW.height);
+      gsap.utils.toArray<SVGSVGElement>("[data-depth]").forEach((ridge) => {
+        const depth = Number(ridge.dataset.depth);
         gsap.to(ridge, {
-          y: -Number(ridge.dataset.depth) * 120,
+          y: () => -depth * 120 * unit(),
           ease: "none",
-          scrollTrigger: { trigger: root.current, start: "top bottom", end: "bottom top", scrub: true },
+          scrollTrigger: { trigger: box, start: "top bottom", end: "bottom top", scrub: true, invalidateOnRefresh: true },
         });
       });
     },
@@ -65,8 +90,13 @@ export function TrailScene() {
   );
 
   return (
-    <div ref={root} className="relative overflow-hidden rounded-[28px] border border-line">
-      <svg viewBox="0 0 1440 640" className="block h-[62vh] min-h-[380px] w-full" preserveAspectRatio="xMidYMax slice" role="img" aria-label="A trail winding from Haldwani up into the hills at night">
+    <div
+      ref={root}
+      role="img"
+      aria-label="A trail winding from Haldwani up into the hills at night"
+      className="relative h-[62vh] min-h-[380px] overflow-hidden rounded-[28px] border border-line"
+    >
+      <Layer>
         <defs>
           <linearGradient id="trail-sky" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stopColor="#070a1f" />
@@ -77,15 +107,19 @@ export function TrailScene() {
             <stop offset="1" stopColor="#fff3d6" stopOpacity="0" />
           </radialGradient>
         </defs>
-        <rect width="1440" height="640" fill="url(#trail-sky)" />
+        <rect width={VIEW.width} height={VIEW.height} fill="url(#trail-sky)" />
         {STARS.map((star, i) => (
           <circle key={i} cx={star.x} cy={star.y} r={star.r} fill="#fff" opacity={0.35 + (i % 4) * 0.15} />
         ))}
         <circle cx="1160" cy="110" r="120" fill="url(#trail-moon)" />
         <circle cx="1160" cy="110" r="34" fill="#f6ecd4" />
-        {RIDGES.map((ridge) => (
-          <path key={ridge.fill} data-depth={ridge.depth} d={ridge.d} fill={ridge.fill} />
-        ))}
+      </Layer>
+      {RIDGES.map((ridge) => (
+        <Layer key={ridge.fill} depth={ridge.depth} className="will-change-transform">
+          <path d={ridge.d} fill={ridge.fill} />
+        </Layer>
+      ))}
+      <Layer>
         <path d="M0 560 C180 520 320 560 480 530 C640 500 720 560 900 520 C1080 480 1200 560 1440 520 L1440 640 L0 640 Z" fill="#0a0e20" />
         {Array.from({ length: 40 }, (_, i) => (
           <circle key={i} cx={40 + ((i * 53) % 240)} cy={598 + ((i * 17) % 34)} r={1.6} fill={i % 5 ? "#ffcb7d" : "#ffffff"} opacity={0.8} />
@@ -94,13 +128,15 @@ export function TrailScene() {
           Haldwani
         </text>
         <path d={TRAIL} fill="none" stroke="rgb(255 138 31 / 0.18)" strokeWidth="4" strokeDasharray="10 9" />
+      </Layer>
+      <Layer>
         <path ref={trail} d={TRAIL} fill="none" stroke="#ff8a1f" strokeWidth="5" strokeLinecap="round" />
         <g ref={flag} opacity="0" className="transition-opacity duration-500">
           <line x1="1080" y1="300" x2="1080" y2="250" stroke="#f2eadb" strokeWidth="3" />
           <path d="M1080 250 L1116 262 L1080 274 Z" fill="#ff8a1f" />
         </g>
         <image ref={walker} href="/minime/trek-walk.png" width="92" height="123" />
-      </svg>
+      </Layer>
     </div>
   );
 }

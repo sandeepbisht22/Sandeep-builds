@@ -54,12 +54,14 @@ function TorsoShell({ shape, color, map }: ShellProps) {
 }
 
 function JerseyTorso({ outfit }: { outfit: Outfit }) {
-  const map = usePainted(() => kitTexture(outfit.top.kit ?? "madrid"));
+  const kit = outfit.top.kit ?? "madrid";
+  const map = usePainted(() => kitTexture(kit), `kit:${kit}`);
   return <TorsoShell shape={SHAPES.jersey} color={outfit.top.color} map={map} />;
 }
 
 function FlannelTorso({ outfit }: { outfit: Outfit }) {
-  const map = usePainted(() => flannelTexture(outfit.top.color, outfit.top.check ?? "#1f1a2b"));
+  const check = outfit.top.check ?? "#1f1a2b";
+  const map = usePainted(() => flannelTexture(outfit.top.color, check), `flannel:${outfit.top.color}:${check}`);
   return <TorsoShell shape={SHAPES.shirt} color={outfit.top.color} map={map} />;
 }
 

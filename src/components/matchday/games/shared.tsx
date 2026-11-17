@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useMemo } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { useThree } from "@react-three/fiber";
 import { RepeatWrapping, type CanvasTexture } from "three";
 import { paint, toTexture } from "@/components/room/textures/canvas";
@@ -19,6 +19,48 @@ export interface GameProps {
   /** Pause rendering while the game is off screen. */
   active: boolean;
   onEvent: (event: GameEvent) => void;
+}
+
+/** Game canvases never draw more than 1.5× pixels: plenty sharp, and half the fill cost of 2×. */
+export const GAME_DPR: [number, number] = [1, 1.5];
+
+/**
+ * Compiles the game's shaders in the background (three's compileAsync uses the browser's
+ * parallel shader compile), then draws one frame so its textures and shadow shaders are ready.
+ * The game is mounted before it scrolls into view, so this all happens before anyone sees it.
+ * It draws with gl.render rather than R3F's advance(): that would also tick the game's clock
+ * and start the demo before anyone is watching.
+ */
+export function Warmup({ onWarm }: { onWarm: () => void }) {
+  const gl = useThree((state) => state.gl);
+  const scene = useThree((state) => state.scene);
+  const camera = useThree((state) => state.camera);
+
+  useEffect(() => {
+    let cancelled = false;
+    const warm = async (): Promise<void> => {
+      try {
+        await gl.compileAsync(scene, camera);
+      } catch {
+        // No parallel compile here: the first frame compiles instead.
+      }
+      if (cancelled) return;
+      gl.render(scene, camera);
+      onWarm();
+    };
+    void warm();
+    return () => {
+      cancelled = true;
+    };
+  }, [gl, scene, camera, onWarm]);
+  return null;
+}
+
+/** Whether the game has warmed up, and the callback that says so. */
+export function useWarm(): [boolean, () => void] {
+  const [warm, setWarm] = useState(false);
+  const onWarm = useCallback(() => setWarm(true), []);
+  return [warm, onWarm];
 }
 
 export function LookAt({ target }: { target: [number, number, number] }) {

@@ -8,9 +8,10 @@ import { createControl, type MiniMeControl } from "@/components/minime/rig";
 import { usePainted } from "@/components/room/usePainted";
 import { footballTexture } from "@/components/room/textures/surfaces";
 import { paint, toTexture } from "@/components/room/textures/canvas";
+import { CANVAS_RESIZE } from "@/components/room/canvasResize";
 import { playSfx } from "@/lib/sound";
 import { GOAL, PENALTY_SHOTS, diveX, judgeShot, pickDive, type Aim, type Dive, type ShotResult } from "./logic";
-import { Floodlights, Line, LookAt, Turf, ease, type GameProps } from "./shared";
+import { Floodlights, GAME_DPR, Line, LookAt, Turf, Warmup, ease, useWarm, type GameProps } from "./shared";
 
 type Phase = "idle" | "runup" | "kick" | "flight" | "result";
 
@@ -268,8 +269,9 @@ function Shootout({ mode, round, onEvent }: Omit<GameProps, "active">) {
 }
 
 export default function PenaltyGame({ active, ...props }: GameProps) {
+  const [warm, onWarm] = useWarm();
   return (
-    <Canvas shadows="percentage" dpr={[1, 1.75]} frameloop={active ? "always" : "never"} camera={{ position: [-0.7, 2.05, 3.6], fov: 38 }}>
+    <Canvas shadows="percentage" resize={CANVAS_RESIZE} dpr={GAME_DPR} frameloop={active && warm ? "always" : "never"} camera={{ position: [-0.7, 2.05, 3.6], fov: 38 }}>
       <LookAt target={[0.1, 0.55, -5.4]} />
       <color attach="background" args={["#07120d"]} />
       <fog attach="fog" args={["#07120d", 10, 26]} />
@@ -284,7 +286,9 @@ export default function PenaltyGame({ active, ...props }: GameProps) {
         <meshStandardMaterial color="#e9efe4" />
       </mesh>
       <Goal />
-      <Shootout {...props} />
+      {/* A new round remounts the shootout, not the canvas, so the WebGL context (and its shaders) survive. */}
+      <Shootout key={props.round} {...props} />
+      <Warmup onWarm={onWarm} />
     </Canvas>
   );
 }

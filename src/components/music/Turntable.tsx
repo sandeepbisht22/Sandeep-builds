@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { gsap } from "@/lib/gsap";
+import { useOnScreen } from "@/lib/hooks";
 import { getAnalyser } from "@/lib/sound";
 import { useExperience } from "@/lib/store";
 import { setSound } from "@/components/chrome/SoundToggle";
@@ -11,10 +12,11 @@ export function Vinyl() {
   const disc = useRef<HTMLDivElement>(null);
   const arm = useRef<HTMLDivElement>(null);
   const spin = useRef<gsap.core.Tween | null>(null);
+  const root = useRef<HTMLDivElement>(null);
   const on = useExperience((state) => state.soundOn);
 
   useEffect(() => {
-    const tween = gsap.to(disc.current, { rotate: 360, duration: 1.8, ease: "none", repeat: -1 });
+    const tween = gsap.to(disc.current, { rotate: 360, duration: 1.8, ease: "none", repeat: -1, paused: true });
     tween.timeScale(0.15);
     spin.current = tween;
     return () => {
@@ -23,6 +25,14 @@ export function Vinyl() {
     };
   }, []);
 
+  // The record only spins while it's on screen.
+  useOnScreen(
+    root,
+    useCallback((visible: boolean) => {
+      spin.current?.paused(!visible);
+    }, []),
+  );
+
   // The record speeds up and the arm drops when the beat is on.
   useEffect(() => {
     if (spin.current) gsap.to(spin.current, { timeScale: on ? 1 : 0.15, duration: 1.2, ease: "power2.inOut" });
@@ -30,7 +40,7 @@ export function Vinyl() {
   }, [on]);
 
   return (
-    <div className="relative mx-auto aspect-square w-full max-w-[520px]">
+    <div ref={root} className="relative mx-auto aspect-square w-full max-w-[520px]">
       {/* the outer layer turns with the scroll (scratching); the record itself keeps spinning inside it */}
       <div data-scratch className="absolute inset-[4%]">
       <div
@@ -58,36 +68,43 @@ export function Vinyl() {
 
 const BARS = 28;
 
-/** Frequency bars: real ones from the beat when it's on, a slow idle wave when it's off. */
+/** Frequency bars: real ones from the beat when it's on, a slow idle wave when it's off. Paused off screen. */
 export function Visualizer() {
   const bars = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const el = bars.current;
+    if (!el) return;
     let frame = 0;
     let data: Uint8Array<ArrayBuffer> | null = null;
     const draw = (time: number): void => {
       const analyser = getAnalyser();
-      const children = bars.current?.children;
-      if (children) {
-        if (analyser) {
-          data ??= new Uint8Array(analyser.frequencyBinCount);
-          analyser.getByteFrequencyData(data);
-        }
-        for (let i = 0; i < children.length; i++) {
-          const level = analyser && data ? data[Math.floor((i / BARS) * data.length * 0.75)] / 255 : 0.12 + Math.sin(time / 500 + i * 0.5) * 0.08;
-          (children[i] as HTMLElement).style.transform = `scaleY(${Math.max(0.06, level)})`;
-        }
+      if (analyser) {
+        data ??= new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(data);
+      }
+      const levels = analyser ? data : null;
+      for (let i = 0; i < el.children.length; i++) {
+        const level = levels ? levels[Math.floor((i / BARS) * levels.length * 0.75)] / 255 : 0.12 + Math.sin(time / 500 + i * 0.5) * 0.08;
+        (el.children[i] as HTMLElement).style.transform = `scaleY(${Math.max(0.06, level)})`;
       }
       frame = requestAnimationFrame(draw);
     };
-    frame = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(frame);
+    const observer = new IntersectionObserver(([entry]) => {
+      cancelAnimationFrame(frame);
+      if (entry.isIntersecting) frame = requestAnimationFrame(draw);
+    });
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
   }, []);
 
   return (
     <div ref={bars} aria-hidden className="flex h-24 items-end gap-[3px]">
       {Array.from({ length: BARS }, (_, i) => (
-        <span key={i} className="h-full flex-1 origin-bottom rounded-full bg-ink" />
+        <span key={i} className="h-full flex-1 origin-bottom rounded-full bg-ink will-change-transform" />
       ))}
     </div>
   );

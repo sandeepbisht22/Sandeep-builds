@@ -24,14 +24,22 @@ function flatten(groups: SkillGroup[]): Sticker[] {
 }
 
 const WALL = 200;
+/** Physics runs in fixed 120Hz steps, so the pile falls at the same speed on 60Hz and 120Hz screens. */
+const STEP_MS = 1000 / 120;
+/** Never try to catch up more than this after a stall (a backgrounded tab, a long frame). */
+const MAX_CATCH_UP_MS = 100;
+const KICK_EVERY_MS = 4200;
 
 /** Builds the physics world for the sticker pile and wires DOM nodes to bodies. Returns a cleanup. */
 function startPile(box: HTMLDivElement): () => void {
-  const { Engine, Bodies, Composite, Body, Mouse, MouseConstraint } = Matter;
-  const engine = Engine.create({ gravity: { x: 0, y: 1.1 } });
+  const { Engine, Bodies, Composite, Body, Mouse, MouseConstraint, Sleeping } = Matter;
+  // Settled stickers fall asleep, so a resting pile costs nothing and its layers stay still.
+  const engine = Engine.create({ gravity: { x: 0, y: 1.1 }, enableSleeping: true });
   const width = box.clientWidth;
   const height = box.clientHeight;
   const nodes = Array.from(box.querySelectorAll<HTMLElement>("[data-body]"));
+  // Read every size once, up front: reading them per frame forced a layout for each sticker.
+  const sizes = nodes.map((node) => ({ w: node.offsetWidth, h: node.offsetHeight }));
 
   const walls = [
     Bodies.rectangle(width / 2, height + WALL / 2, width * 2, WALL, { isStatic: true }),
@@ -39,8 +47,7 @@ function startPile(box: HTMLDivElement): () => void {
     Bodies.rectangle(width + WALL / 2, height / 2, WALL, height * 4, { isStatic: true }),
   ];
   const bodies = nodes.map((node, i) => {
-    const w = node.offsetWidth;
-    const h = node.offsetHeight;
+    const { w, h } = sizes[i];
     const x = 60 + ((i * 137) % Math.max(1, width - 120));
     const y = -80 - i * 46;
     const round = node.dataset.body === "ball";
@@ -61,25 +68,46 @@ function startPile(box: HTMLDivElement): () => void {
     Composite.add(engine.world, MouseConstraint.create(engine, { mouse, constraint: { stiffness: 0.18, damping: 0.1 } }));
   }
 
-  // Every few seconds the ball gets a kick, like someone's always got a ball at their feet.
-  const kick = window.setInterval(() => {
-    const ball = bodies[bodies.length - 1];
-    Body.applyForce(ball, ball.position, { x: (Math.random() - 0.5) * 0.06, y: -0.05 });
-  }, 4200);
+  const draw = (): void => {
+    nodes.forEach((node, i) => {
+      const body = bodies[i];
+      if (body.isSleeping) return;
+      const { w, h } = sizes[i];
+      node.style.transform = `translate3d(${body.position.x - w / 2}px, ${body.position.y - h / 2}px, 0) rotate(${body.angle}rad)`;
+    });
+  };
 
   let frame = 0;
   let running = false;
-  const tick = (): void => {
-    Engine.update(engine, 1000 / 60);
-    nodes.forEach((node, i) => {
-      const body = bodies[i];
-      node.style.transform = `translate(${body.position.x - node.offsetWidth / 2}px, ${body.position.y - node.offsetHeight / 2}px) rotate(${body.angle}rad)`;
-    });
+  let last = 0;
+  let pending = 0;
+  let sinceKick = 0;
+  const tick = (now: number): void => {
+    const elapsed = Math.min(now - last, MAX_CATCH_UP_MS);
+    last = now;
+    pending += elapsed;
+    sinceKick += elapsed;
+    // Every few seconds the ball gets a kick, like someone's always got a ball at their feet.
+    if (sinceKick >= KICK_EVERY_MS) {
+      sinceKick = 0;
+      const ball = bodies[bodies.length - 1];
+      Sleeping.set(ball, false);
+      Body.applyForce(ball, ball.position, { x: (Math.random() - 0.5) * 0.06, y: -0.05 });
+    }
+    while (pending >= STEP_MS) {
+      Engine.update(engine, STEP_MS);
+      pending -= STEP_MS;
+    }
+    draw();
     frame = requestAnimationFrame(tick);
   };
+  // Park every sticker above the box straight away, so the first visible frame is already mid-drop.
+  draw();
+  // Only simulate while the pile is on screen; the clock (and the kick timer) pause with it.
   const observer = new IntersectionObserver(([entry]) => {
     if (entry.isIntersecting && !running) {
       running = true;
+      last = performance.now();
       frame = requestAnimationFrame(tick);
     } else if (!entry.isIntersecting && running) {
       running = false;
@@ -91,7 +119,6 @@ function startPile(box: HTMLDivElement): () => void {
   return () => {
     observer.disconnect();
     cancelAnimationFrame(frame);
-    window.clearInterval(kick);
     if (mouse) Mouse.clearSourceEvents(mouse);
     Composite.clear(engine.world, false);
     Engine.clear(engine);
@@ -119,7 +146,7 @@ export function SkillsPile({ groups }: { groups: SkillGroup[] }) {
         <span
           key={sticker.label}
           data-body="sticker"
-          className={`select-none whitespace-nowrap rounded-full px-5 py-2.5 text-base font-bold text-ink shadow-[0_0_0_3px_var(--color-paper),0_10px_18px_rgb(3_4_12/0.45)] group-data-[physics=on]/pile:absolute group-data-[physics=on]/pile:left-0 group-data-[physics=on]/pile:top-0 group-data-[physics=on]/pile:cursor-grab md:text-lg ${GROUP_COLOURS[sticker.group] ?? "bg-paper"}`}
+          className={`select-none whitespace-nowrap rounded-full px-5 py-2.5 text-base font-bold text-ink shadow-[0_0_0_3px_var(--color-paper),0_10px_18px_rgb(3_4_12/0.45)] group-data-[physics=on]/pile:absolute group-data-[physics=on]/pile:left-0 group-data-[physics=on]/pile:top-0 group-data-[physics=on]/pile:cursor-grab group-data-[physics=on]/pile:will-change-transform md:text-lg ${GROUP_COLOURS[sticker.group] ?? "bg-paper"}`}
         >
           {sticker.label}
           {sticker.learning && <span className="ml-2 align-middle text-xs font-semibold text-ink/60">learning</span>}
@@ -128,7 +155,7 @@ export function SkillsPile({ groups }: { groups: SkillGroup[] }) {
       <span
         data-body="ball"
         aria-hidden
-        className="grid h-14 w-14 place-items-center rounded-full bg-[#f8f5ee] shadow-[0_0_0_3px_var(--color-paper),0_10px_18px_rgb(3_4_12/0.45)] group-data-[physics=on]/pile:absolute group-data-[physics=on]/pile:left-0 group-data-[physics=on]/pile:top-0"
+        className="grid h-14 w-14 place-items-center rounded-full bg-[#f8f5ee] shadow-[0_0_0_3px_var(--color-paper),0_10px_18px_rgb(3_4_12/0.45)] group-data-[physics=on]/pile:absolute group-data-[physics=on]/pile:left-0 group-data-[physics=on]/pile:top-0 group-data-[physics=on]/pile:will-change-transform"
       >
         <svg viewBox="-12 -12 24 24" className="h-full w-full">
           <path d="M0 -5.5 L5.2 -1.7 L3.2 4.4 L-3.2 4.4 L-5.2 -1.7 Z" fill="#1b1424" />

@@ -5,6 +5,7 @@ import { Effects } from "./Effects";
 import { Hoverable } from "./Hoverable";
 import { Lights } from "./Lights";
 import { MiniMeWalker } from "./MiniMeWalker";
+import { OutfitWarmup } from "./OutfitWarmup";
 import { Ambience } from "./objects/Ambience";
 import { Decor } from "./objects/Decor";
 import { Desk } from "./objects/Desk";
@@ -16,8 +17,13 @@ import { TrekCorner } from "./objects/TrekCorner";
 import { Turntable } from "./objects/Turntable";
 import { WindowBackdrop, WindowView } from "./objects/WindowView";
 
+interface RoomSceneProps {
+  /** MSAA samples for the postprocessing buffer (set by the quality tier). */
+  multisampling: number;
+}
+
 /** Sandeep's room. Every object you can hover leads to one chapter of the page. */
-export function RoomScene() {
+export function RoomScene({ multisampling }: RoomSceneProps) {
   return (
     <Selection>
       <Lights />
@@ -46,7 +52,8 @@ export function RoomScene() {
         <TrekCorner />
       </Hoverable>
       <MiniMeWalker />
-      <Effects />
+      <OutfitWarmup />
+      <Effects multisampling={multisampling} />
     </Selection>
   );
 }

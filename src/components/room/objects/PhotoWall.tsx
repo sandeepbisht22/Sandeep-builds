@@ -20,7 +20,7 @@ interface PolaroidProps {
 }
 
 function Polaroid({ kind, x, y, tilt }: PolaroidProps) {
-  const map = usePainted(() => polaroidTexture(kind));
+  const map = usePainted(() => polaroidTexture(kind), `polaroid:${kind}`);
   return (
     <group position={[x, y, WALL_Z + 0.035]} rotation-z={tilt}>
       <mesh castShadow>

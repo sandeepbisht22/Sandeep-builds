@@ -1,12 +1,15 @@
 "use client";
 
-import { Component, Suspense, useEffect, useRef, type ReactNode } from "react";
+import { Component, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
+import { PerformanceMonitor } from "@react-three/drei";
 import { gsap } from "@/lib/gsap";
 import { usePrefersReducedMotion } from "@/lib/hooks";
 import { useExperience } from "@/lib/store";
 import { lights } from "@/lib/travel";
 import { CameraRig } from "./CameraRig";
+import { CANVAS_RESIZE } from "./canvasResize";
+import { QUALITY_TIERS, fpsBounds, stepDown } from "./quality";
 import { RoomScene } from "./RoomScene";
 
 /** Tells the preloader the room has actually drawn (a couple of frames, so shaders are compiled). */
@@ -65,7 +68,10 @@ class RoomBoundary extends Component<{ children: ReactNode }, BoundaryState> {
 export default function RoomCanvas() {
   const visible = useExperience((state) => state.roomVisible);
   const sceneReady = useExperience((state) => state.sceneReady);
+  const ready = useExperience((state) => state.ready);
   const reducedMotion = usePrefersReducedMotion();
+  const [tier, setTier] = useState(0);
+  const quality = QUALITY_TIERS[tier];
   // Keep drawing until the first frames are in, even if the room is scrolled out of view.
   const running = visible || !sceneReady;
 
@@ -73,16 +79,19 @@ export default function RoomCanvas() {
     <RoomBoundary>
       <Canvas
         shadows="percentage"
-        dpr={[1, 1.75]}
+        resize={CANVAS_RESIZE}
+        dpr={[1, quality.dpr]}
         gl={{ alpha: true, antialias: false, powerPreference: "high-performance", stencil: false }}
         camera={{ fov: 28, near: 0.1, far: 60, position: [12, 9, 12] }}
         frameloop={running ? "always" : "never"}
         onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
       >
         <Suspense fallback={null}>
-          <RoomScene />
+          <RoomScene multisampling={quality.msaa} />
           <ReadySignal />
         </Suspense>
+        {/* Judged only once the preloader is gone, so loading work never counts against the GPU. Steps down only. */}
+        {ready && <PerformanceMonitor bounds={fpsBounds} onDecline={() => setTier(stepDown)} />}
         <CameraRig reducedMotion={reducedMotion} />
         <LightsDirector reducedMotion={reducedMotion} />
       </Canvas>

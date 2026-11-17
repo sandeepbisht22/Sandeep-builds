@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import { useExperience } from "@/lib/store";
 import type { GameEvent, GameMode } from "./games/shared";
 
 const PenaltyGame = dynamic(() => import("./games/PenaltyGame"), { ssr: false });
@@ -37,12 +38,42 @@ export function MiniGames() {
   useEffect(() => {
     const el = box.current;
     if (!el) return;
-    const observer = new IntersectionObserver(([entry]) => {
-      setVisible(entry.isIntersecting);
-      if (entry.isIntersecting) setMounted(true);
-    }, { rootMargin: "200px" });
-    observer.observe(el);
-    return () => observer.disconnect();
+    let scheduled = false;
+    let cancelMount = (): void => {};
+    const mountWhenIdle = (): void => {
+      if (scheduled) return;
+      scheduled = true;
+      const mount = (): void => setMounted(true);
+      // Safari has no requestIdleCallback yet; a plain timeout still keeps it off the scroll frame.
+      if (typeof window.requestIdleCallback === "function") {
+        const id = window.requestIdleCallback(mount, { timeout: 300 });
+        cancelMount = () => window.cancelIdleCallback(id);
+      } else {
+        const id = globalThis.setTimeout(mount, 0);
+        cancelMount = () => globalThis.clearTimeout(id);
+      }
+    };
+    // Setting the game up costs one long task (a new WebGL context plus the scene). On a first
+    // visit it happens behind the preloader, where nobody can see it; otherwise three screens
+    // early, so its shaders are compiled (see Warmup) long before it scrolls into view.
+    if (!useExperience.getState().ready) mountWhenIdle();
+    const near = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        near.disconnect();
+        mountWhenIdle();
+      },
+      { rootMargin: "300% 0px" },
+    );
+    // It only draws while it's actually on screen.
+    const onScreen = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting));
+    near.observe(el);
+    onScreen.observe(el);
+    return () => {
+      near.disconnect();
+      onScreen.disconnect();
+      cancelMount();
+    };
   }, []);
 
   const onEvent = useCallback((event: GameEvent) => {
@@ -94,7 +125,7 @@ export function MiniGames() {
         data-cursor-path={game === "penalty" ? "/matchday?shoot" : "/matchday?swing"}
         className="relative mt-8 aspect-[4/5] overflow-hidden rounded-[28px] border border-line bg-[#07120d] sm:aspect-[16/9]"
       >
-        {mounted && <Scene key={`${game}-${round}`} mode={status.mode} round={round} active={visible} onEvent={onEvent} />}
+        {mounted && <Scene key={game} mode={status.mode} round={round} active={visible} onEvent={onEvent} />}
 
         <div className="pointer-events-none absolute inset-x-5 top-5 flex items-start justify-between text-sm">
           <span className="rounded-full bg-ink/70 px-4 py-2 text-paper backdrop-blur">
@@ -112,7 +143,7 @@ export function MiniGames() {
         )}
 
         {(status.ready || status.summary) && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 bg-ink/55 backdrop-blur-[2px]">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 bg-ink/65">
             {status.summary && <p className="max-w-sm px-6 text-center text-2xl font-semibold text-paper">{status.summary}</p>}
             <button
               type="button"
