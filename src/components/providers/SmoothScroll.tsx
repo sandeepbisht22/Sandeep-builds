@@ -12,7 +12,9 @@ export function SmoothScroll(): null {
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    const lenis = new Lenis({ lerp: 0.075, wheelMultiplier: 0.8, touchMultiplier: 1.1 });
+    // lerp 0.1 (Lenis's own default): still silky, but the page answers the wheel without feeling a beat behind.
+    // Touch keeps native scrolling (syncTouch off), which is the smoothest thing a phone can do.
+    const lenis = new Lenis({ lerp: 0.1, wheelMultiplier: 0.8, touchMultiplier: 1.1 });
     const onTick = (time: number): void => lenis.raf(time * 1000);
 
     lenis.on("scroll", ScrollTrigger.update);

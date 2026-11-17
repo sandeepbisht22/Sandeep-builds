@@ -31,16 +31,26 @@ export function ProjectIndex({ rows, previews }: ProjectIndexProps) {
   /** The last row hovered or focused: it stays in the window while the window fades out. */
   const [shown, setShown] = useState(0);
 
+  /** Reusable followers for the preview window (one tween each, retargeted on every move). */
+  const followX = useRef<((value: number) => void) | null>(null);
+  const followY = useRef<((value: number) => void) | null>(null);
+
   useEffect(() => {
     const el = floater.current;
+    if (!el) return;
     gsap.set(el, { xPercent: -50, yPercent: -55, scale: 0.6, autoAlpha: 0, rotate: -6 });
+    followX.current = gsap.quickTo(el, "x", { duration: 0.6, ease: "power3.out" });
+    followY.current = gsap.quickTo(el, "y", { duration: 0.6, ease: "power3.out" });
     return () => {
+      followX.current = null;
+      followY.current = null;
       gsap.killTweensOf(el);
     };
   }, []);
 
   const follow = (event: React.PointerEvent): void => {
-    gsap.to(floater.current, { x: event.clientX, y: event.clientY, duration: 0.6, ease: "power3.out", overwrite: "auto" });
+    followX.current?.(event.clientX);
+    followY.current?.(event.clientY);
   };
 
   const show = (index: number | null): void => {

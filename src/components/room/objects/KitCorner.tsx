@@ -16,7 +16,7 @@ const JERSEY_Y = 2.3;
 const CENTRE_Z = 1.78;
 
 function FramedJersey({ kind, z }: { kind: JerseyKind; z: number }) {
-  const map = usePainted(() => jerseyTexture(kind));
+  const map = usePainted(() => jerseyTexture(kind), `jersey:${kind}`);
   return (
     <group position={[WALL_X, JERSEY_Y, z]} rotation-y={Math.PI / 2}>
       <RoundedBox args={[0.96, 1.12, 0.06]} radius={0.015} castShadow>

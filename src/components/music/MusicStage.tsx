@@ -13,10 +13,12 @@ export function MusicStage({ children }: { children: ReactNode }) {
   useGSAP(
     () => {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-      const scratch = stage.current?.querySelector("[data-scratch]");
-      const track = stage.current?.querySelector("[data-track]");
+      const scratch = stage.current?.querySelector<HTMLElement>("[data-scratch]");
+      const track = stage.current?.querySelector<HTMLElement>("[data-track]");
       const mm = gsap.matchMedia();
       const pin = (start: string): void => {
+        // One reusable tween for the scratch, instead of a new one on every scroll event.
+        const turn = scratch ? gsap.quickTo(scratch, "rotation", { duration: 0.5, ease: "power3.out" }) : null;
         ScrollTrigger.create({
           trigger: stage.current,
           start,
@@ -24,8 +26,8 @@ export function MusicStage({ children }: { children: ReactNode }) {
           pin: true,
           anticipatePin: 1,
           onUpdate: (self) => {
-            gsap.to(scratch ?? [], { rotation: self.progress * 900, duration: 0.5, ease: "power3.out", overwrite: "auto" });
-            gsap.set(track ?? [], { "--wdth": 62 + self.progress * 43 });
+            turn?.(self.progress * 900);
+            track?.style.setProperty("--wdth", String(62 + self.progress * 43));
           },
         });
       };
